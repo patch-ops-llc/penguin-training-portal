@@ -177,6 +177,9 @@ export function Launchpad({
                     (prog && prog.furthestStep > 1 && prog.status !== "COMPLETED"),
                 );
                 const baseHref = `/learn/${tenant.slug}/${track.id}/${mod.id}`;
+                const isCompleted = prog?.status === "COMPLETED";
+                const ctaHref = canResume ? baseHref : `${baseHref}?fresh=1`;
+                const ctaLabel = isCompleted ? "Replay →" : canResume ? "Continue →" : "Start module →";
                 const statusBadge =
                   prog?.status === "COMPLETED" ? (
                     <span
@@ -215,7 +218,15 @@ export function Launchpad({
                           {statusBadge}
                         </div>
                       </div>
-                      <h4 className="mt-1.5 font-display text-[15px] font-semibold text-ink">{mod.title}</h4>
+                      <h4 className="mt-1.5 font-display text-[15px] font-semibold text-ink">
+                        <Link
+                          href={ctaHref}
+                          data-testid={`title-link-${track.id}-${mod.id}`}
+                          className="transition-colors hover:text-brand hover:underline"
+                        >
+                          {mod.title}
+                        </Link>
+                      </h4>
                       <p className="mt-1 text-[13px] leading-relaxed text-ink-soft">{mod.summary}</p>
                       <div className="mt-2.5 flex flex-wrap gap-1.5">
                         {mod.roleTags.map((tag) => (
@@ -227,19 +238,19 @@ export function Launchpad({
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-2.5 pt-1">
                       <Link
-                        href={`${baseHref}?fresh=1`}
+                        href={ctaHref}
                         data-testid={`launch-${track.id}-${mod.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-[6px] bg-brand px-3.5 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-hover"
+                        className="inline-flex items-center gap-1.5 rounded-[6px] bg-brand px-3.5 py-1.5 text-[13px] font-semibold text-white shadow-xs transition hover:bg-brand-hover"
                       >
-                        {prog?.status === "COMPLETED" ? "Practice again" : "Start module"} →
+                        {ctaLabel}
                       </Link>
                       {canResume ? (
                         <Link
-                          href={baseHref}
-                          data-testid={`resume-${track.id}-${mod.id}`}
-                          className="inline-flex items-center rounded-[6px] border border-line bg-surface px-3 py-1.5 text-[13px] font-medium text-ink hover:bg-surface-subtle"
+                          href={`${baseHref}?fresh=1`}
+                          data-testid={`restart-${track.id}-${mod.id}`}
+                          className="inline-flex items-center rounded-[6px] border border-line bg-surface px-3 py-1.5 text-[13px] font-medium text-ink transition hover:bg-surface-subtle"
                         >
-                          Continue where I left off
+                          Start over
                         </Link>
                       ) : null}
                       {prog && prog.usedShowMeCount > 0 ? (

@@ -20,15 +20,32 @@
   --penguin: #4c32b7;
   --penguin-strong: #3b21a6;
   --penguin-soft: #ece8fa;
+  /* Portal surface, text & semantic status tokens. */
+  --brand: var(--penguin);
+  --brand-hover: var(--penguin-strong);
+  --hs-ink-soft: #3d3a4b;
+  --hs-surface-subtle: #f7f6fb;
+  --hs-surface-sunken: #eeecf5;
+  --success: #0b5b2b;
+  --success-soft: #e6f4ea;
+  --info: #0b5394;
+  --info-soft: #e8f1fb;
+  --warning: #8a5300;
+  --warning-soft: #fff4e0;
+  --danger: #a11212;
+  --danger-soft: #fdf1f1;
 }
 
 @theme inline {
   --color-hs-orange: var(--hs-orange);
   --color-hs-orange-strong: var(--hs-orange-strong);
   --color-ink: var(--hs-ink);
+  --color-ink-soft: var(--hs-ink-soft);
   --color-ink-muted: var(--hs-ink-muted);
   --color-hs-bg: var(--hs-bg);
   --color-surface: var(--hs-surface);
+  --color-surface-subtle: var(--hs-surface-subtle);
+  --color-surface-sunken: var(--hs-surface-sunken);
   --color-line: var(--hs-line);
   --color-line-soft: var(--hs-line-soft);
   --color-link: var(--hs-link);
@@ -40,7 +57,18 @@
   --color-penguin: var(--penguin);
   --color-penguin-strong: var(--penguin-strong);
   --color-penguin-soft: var(--penguin-soft);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
   --font-sans: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
   --font-penguin: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
 }
 

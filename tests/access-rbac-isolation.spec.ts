@@ -41,6 +41,38 @@ test("wrong password is refused and recorded in the access log", async ({ page }
   await expect(page.getByTestId("access-log")).toContainText("Sign-in failed");
 });
 
+test("launchpad Start module CTA has opaque brand background and clicking module title navigates into /learn", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/launchpad");
+
+  const cta = page.getByTestId("launch-amico-hubspot-101-orientation-navigation");
+  const titleLink = page.getByTestId("title-link-amico-hubspot-101-orientation-navigation");
+  await expect(cta).toBeVisible();
+  await expect(titleLink).toBeVisible();
+
+  // Verify title link points to the exact same target URL as the CTA button
+  const ctaHref = await cta.getAttribute("href");
+  const titleHref = await titleLink.getAttribute("href");
+  expect(ctaHref).toBeTruthy();
+  expect(titleHref).toBe(ctaHref);
+
+  // Verify computed CSS styles on the CTA button (opaque non-white brand background + contrasting white text)
+  const styles = await cta.evaluate((el) => {
+    const cs = window.getComputedStyle(el);
+    return { backgroundColor: cs.backgroundColor, color: cs.color };
+  });
+  expect(styles.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+  expect(styles.backgroundColor).not.toBe("transparent");
+  expect(styles.backgroundColor).not.toBe("rgb(255, 255, 255)");
+  expect(styles.backgroundColor).toMatch(/^rgb\(\s*76,\s*50,\s*183\s*\)$/);
+  expect(styles.color).toMatch(/^rgb\(\s*255,\s*255,\s*255\s*\)$/);
+
+  // Clicking the module title navigates directly into the module sandbox
+  await titleLink.click();
+  await expect(page).toHaveURL(/\/learn\/amico\/amico-hubspot-101\/orientation-navigation/);
+  await expect(page.getByTestId("training-bar")).toBeVisible();
+});
+
 test("multi-tenant RBAC, 403 cross-tenant isolation, invite flow, and TrainingProgress persistence", async ({ page, browser }) => {
   test.skip(!isLocal, "Creates test tenants and users against local DB only.");
 
