@@ -9,9 +9,12 @@ import {
   DealsIndex,
   ProductsIndex,
   QuotesIndex,
+  ReportingDashboardPage,
   TasksIndex,
+  TicketsIndex,
   WorkflowsIndex,
 } from "./pages/lists";
+import { AddressesIndex, AddressRecord } from "./pages/addresses";
 import { ProfilePage } from "./pages/profile";
 import { ProjectRecord, ProjectsIndex } from "./pages/projects";
 import { QuotePage } from "./pages/quote";
@@ -32,8 +35,12 @@ export function Routes() {
       return id ? <CompanyRecord id={id} /> : <CompaniesIndex />;
     case "deals":
       return id ? <DealRecord id={id} /> : <DealsIndex />;
+    case "tickets":
+      return <TicketsIndex />;
     case "projects":
       return id ? <ProjectRecord id={id} /> : <ProjectsIndex />;
+    case "addresses":
+      return id ? <AddressRecord id={id} /> : <AddressesIndex />;
     case "epicor-quotes":
       return id ? <EpicorQuoteRecord id={id} /> : <EpicorQuotesIndex />;
     case "segments":
@@ -41,6 +48,7 @@ export function Routes() {
     case "tasks":
       return <TasksIndex />;
     case "leads":
+    case "sales-workspace":
       return <LeadsPage />;
     case "quotes":
       return id ? <QuotePage id={id} /> : <QuotesIndex />;
@@ -48,6 +56,8 @@ export function Routes() {
       return <ProductsIndex />;
     case "workflows":
       return id ? <WorkflowPage id={id} /> : <WorkflowsIndex />;
+    case "reporting":
+      return <ReportingDashboardPage />;
     default:
       return <DealsIndex />;
   }

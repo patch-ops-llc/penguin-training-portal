@@ -9,6 +9,7 @@ export const money = (value: number) => (Number.isInteger(value) ? usd0.format(v
 export const money2 = (value: number) => usd2.format(value);
 export const num = (value: number) => number.format(value);
 export const date = (iso: string) => dateFmt.format(new Date(iso));
+export const shortDate = (iso: string) => dateFmt.format(new Date(iso));
 export const dateTime = (iso: string) => dateTimeFmt.format(new Date(iso));
 export const time = (iso: string) => timeFmt.format(new Date(iso));
 export const pct = (value: number) => `${Math.round(value * 10) / 10}%`;

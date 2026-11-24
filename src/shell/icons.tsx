@@ -4,6 +4,7 @@ const PATHS = {
   plus: "M12 5v14M5 12h14",
   chat: "M4 5h13v9H9l-3 3v-3H4V5Zm13 4h3v9h-2v3l-3-3h-5v-1",
   chevronDown: "m6 9 6 6 6-6",
+  chevronUp: "m18 15-6-6-6 6",
   chevronRight: "m9 6 6 6-6 6",
   chevronLeft: "m15 6-6 6 6 6",
   close: "M6 6l12 12M18 6 6 18",
@@ -60,6 +61,16 @@ const PATHS = {
   shield: "M12 3 5 6v6c0 5 3.2 8.2 7 9.5 3.8-1.3 7-4.5 7-9.5V6l-7-3Zm-2.5 9.2 1.8 1.8 3.7-3.8",
   chart: "M4 19h16M7 16v-5M12 16V7M17 16v-8",
   book: "M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22V5.5Zm0 13.5A2.5 2.5 0 0 1 6.5 16.5H20",
+  sparkle: "M12 3c.7 4.7 2.8 6.8 7.5 7.5-4.7.7-6.8 2.8-7.5 7.5-.7-4.7-2.8-6.8-7.5-7.5C9.2 9.8 11.3 7.7 12 3Zm6.5 13c.3 1.8 1.2 2.7 3 3-1.8.3-2.7 1.2-3 3-.3-1.8-1.2-2.7-3-3 1.8-.3 2.7-1.2 3-3Z",
+  help: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm-2.2-11a2.3 2.3 0 1 1 3.5 2c-.8.5-1.3 1-1.3 2m0 3v.01",
+  bookmark: "M6 4h12v17l-6-4-6 4V4Z",
+  columns: "M4 5h16v14H4V5Zm5.3 0v14m5.4-14v14",
+  download: "M12 4v11m0 0-4-4m4 4 4-4M4 19h16",
+  upload: "M12 15V4m0 0-4 4m4-4 4 4M4 19h16",
+  ticket: "M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8Zm6-2v12",
+  minimize: "M5 12h14",
+  grip: "M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01",
+  briefcase: "M4 8h16v12H4V8Zm5-4h6v4H9V4Zm-5 8h16",
 } as const;
 
 export type IconName = keyof typeof PATHS;

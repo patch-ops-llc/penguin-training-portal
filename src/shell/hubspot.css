@@ -1,0 +1,364 @@
+/* ==========================================================================
+   HubSpot Smart CRM / Sales Hub / Commerce (2025/2026) Design System
+   Strictly scoped to .hs-app inside src/shell/ — zero leakage to portal pages.
+   ========================================================================== */
+
+.hs-app {
+  --hs-chrome: #333333;
+  --hs-chrome-sub: #333333;
+  --hs-chrome-hover: #444444;
+  --hs-chrome-active: #33475b;
+  --hs-chrome-border: #33475b;
+
+  --hs-thunder: #33475b;
+  --hs-flint: #516f90;
+  --hs-battleship: #7c98b6;
+
+  --hs-calypso: #006162;
+  --hs-calypso-hover: #00494b;
+  --hs-calypso-soft: #e6f7f7;
+
+  --hs-lorax: #ff5c35;
+  --hs-lorax-hover: #e84b27;
+  --hs-lorax-soft: #fff1ed;
+
+  --hs-gypsum: #f5f8fa;
+  --hs-ice: #eaf0f6;
+  --hs-border: #dfe3eb;
+  --hs-input-border: #cbd6e2;
+
+  --hs-oz: #00bda5;
+  --hs-oz-soft: #e5f8f6;
+  --hs-oz-ink: #006c5f;
+
+  --hs-marigold: #f5c26b;
+  --hs-marigold-soft: #fef6e7;
+  --hs-marigold-ink: #8a5300;
+
+  --hs-danger: #f2545b;
+  --hs-danger-soft: #fdecee;
+  --hs-danger-ink: #b0232a;
+
+  --hs-font-display: var(--font-lexend), "Lexend Deca", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --hs-font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Map legacy shell variables inside .hs-app so every child inherits HubSpot tokens */
+  --color-nav: #333333;
+  --color-nav-hover: #444444;
+  --color-hs-bg: #f5f8fa;
+  --color-ink: #33475b;
+  --color-ink-muted: #516f90;
+  --color-line: #dfe3eb;
+  --color-line-soft: #eaf0f6;
+  --color-link: #006162;
+  --color-link-hover: #00494b;
+  --color-hs-orange: #ff5c35;
+  --color-hs-orange-strong: #e84b27;
+
+  font-family: var(--hs-font-body);
+  color: var(--hs-thunder);
+  background: var(--hs-chrome);
+}
+
+.hs-app h1,
+.hs-app h2,
+.hs-app h3,
+.hs-app .hs-heading {
+  font-family: var(--hs-font-display);
+  color: var(--hs-thunder);
+  letter-spacing: -0.01em;
+}
+
+/* Authentic HubSpot Calypso record links */
+.hs-app .hs-link {
+  color: var(--hs-calypso);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 100ms ease;
+}
+.hs-app .hs-link:hover {
+  color: var(--hs-calypso-hover);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.hs-assoc-chip {
+  background: #e6e6e6;
+  color: #333333;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hs-record-center {
+  background: var(--hs-record-canvas, #f5f8fa);
+}
+
+/* Authentic HubSpot form inputs & selects */
+.hs-app .hs-input {
+  height: 34px;
+  border-radius: 3px;
+  border: 1px solid var(--hs-input-border);
+  background: var(--hs-gypsum);
+  padding: 0 10px;
+  font-size: 13px;
+  color: var(--hs-thunder);
+  transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+}
+.hs-app textarea.hs-input {
+  height: auto;
+  padding: 8px 10px;
+}
+.hs-app .hs-input::placeholder {
+  color: var(--hs-battleship);
+}
+.hs-app .hs-input:hover:not(:disabled) {
+  border-color: #99acc2;
+}
+.hs-app .hs-input:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: var(--hs-calypso);
+  box-shadow: 0 0 0 2px rgba(0, 97, 98, 0.18);
+}
+.hs-app .hs-input:disabled {
+  background: #eaf0f6;
+  color: #7c98b6;
+  cursor: not-allowed;
+}
+
+/* HubSpot Quick Filter Pills on Object Index Views */
+.hs-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 3px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--hs-calypso);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background-color 100ms ease, border-color 100ms ease;
+}
+.hs-filter-pill:hover {
+  background: var(--hs-calypso-soft);
+}
+.hs-filter-pill[data-active="true"] {
+  background: var(--hs-calypso-soft);
+  border-color: #99d6e2;
+  color: var(--hs-calypso-hover);
+}
+
+/* Dense Bordered HubSpot CRM Data Grid */
+.hs-grid-wrap {
+  border: 1px solid var(--hs-border);
+  border-radius: 3px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.hs-grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  color: var(--hs-thunder);
+}
+
+.hs-grid thead th {
+  height: 36px;
+  background: var(--hs-gypsum);
+  border-bottom: 1px solid var(--hs-border);
+  border-right: 1px solid var(--hs-border);
+  padding: 0 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--hs-flint);
+  white-space: nowrap;
+  user-select: none;
+}
+.hs-grid thead th:last-child {
+  border-right: 0;
+}
+
+.hs-grid tbody td {
+  height: 42px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--hs-border);
+  border-right: 1px solid #eef2f6;
+  background: #ffffff;
+  vertical-align: middle;
+  transition: background-color 80ms ease;
+}
+.hs-grid tbody td:last-child {
+  border-right: 0;
+}
+.hs-grid tbody tr:last-child td {
+  border-bottom: 0;
+}
+.hs-grid tbody tr:hover td {
+  background: #f5f8fa;
+}
+.hs-grid tbody tr[data-selected="true"] td {
+  background: #e6f7f7;
+}
+
+.hs-grid .hs-sticky-check {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 38px;
+  min-width: 38px;
+  max-width: 38px;
+  padding: 0 10px;
+  text-align: center;
+}
+.hs-grid .hs-sticky-name {
+  position: sticky;
+  left: 38px;
+  z-index: 2;
+  border-right: 1px solid var(--hs-border);
+}
+.hs-grid thead .hs-sticky-check,
+.hs-grid thead .hs-sticky-name {
+  z-index: 3;
+  background: var(--hs-gypsum);
+}
+
+.hs-preview-btn {
+  opacity: 0;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 3px;
+  border: 1px solid var(--hs-input-border);
+  background: #ffffff;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--hs-thunder);
+  transition: opacity 90ms ease, border-color 90ms ease, background-color 90ms ease;
+}
+.hs-grid tbody tr:hover .hs-preview-btn,
+.hs-assoc-card:hover .hs-preview-btn,
+.hs-preview-btn:focus-visible {
+  opacity: 1;
+}
+.hs-preview-btn:hover {
+  background: var(--hs-ice);
+  border-color: #99acc2;
+}
+
+/* Authentic 3-Column CRM Record Page Layout */
+.hs-record-3pane {
+  display: grid;
+  grid-template-columns: 305px minmax(0, 1fr) 315px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--hs-gypsum);
+}
+
+.hs-record-left {
+  background: #ffffff;
+  border-right: 1px solid var(--hs-border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.hs-record-center {
+  background: var(--hs-gypsum);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.hs-record-right {
+  background: #ffffff;
+  border-left: 1px solid var(--hs-border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Circular HubSpot Quick Action Buttons in Record Left Sidebar */
+.hs-quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--hs-flint);
+  background: none;
+  border: 0;
+  padding: 2px;
+}
+.hs-quick-action-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  border: 1px solid var(--hs-input-border);
+  background: var(--hs-ice);
+  color: var(--hs-thunder);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 100ms ease, border-color 100ms ease, color 100ms ease;
+}
+.hs-quick-action:hover .hs-quick-action-circle {
+  background: #dce6f0;
+  border-color: #99acc2;
+  color: var(--hs-calypso-hover);
+}
+
+/* Right Slide-Over HubSpot Drawer */
+@keyframes hs-drawer-in {
+  from {
+    transform: translateX(28px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.hs-drawer-panel {
+  animation: hs-drawer-in 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hs-drawer-header {
+  background: linear-gradient(90deg, #006162 0%, #00a4bd 100%);
+  color: #ffffff;
+}
+
+/* Floating Bottom-Right HubSpot Activity Composer Dock */
+@keyframes hs-composer-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.hs-composer-window {
+  animation: hs-composer-up 140ms ease-out;
+  box-shadow: 0 12px 38px rgba(31, 42, 55, 0.28), 0 2px 8px rgba(31, 42, 55, 0.12);
+}
+
+/* Penguin Training Coach HUD — Unmistakably Distinct From HubSpot Chrome */
+.penguin-hud-shell {
+  background: linear-gradient(135deg, #241654 0%, #170e38 100%);
+  border: 1px solid rgba(155, 135, 255, 0.45);
+  box-shadow: 0 10px 32px rgba(17, 10, 42, 0.48), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  font-family: var(--font-poppins), "Poppins", -apple-system, BlinkMacSystemFont, sans-serif;
+}

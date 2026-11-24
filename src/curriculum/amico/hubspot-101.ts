@@ -15,7 +15,7 @@ export const AMICO_101_SCRIPTS: Record<string, TrainingScript> = {
       {
         id: "global-search",
         title: "Search HubSpot before creating any record",
-        hint: 'Type "Grading Pacific" in the top Search HubSpot bar to verify migrated Pipedrive/Epicor records.',
+        hint: 'Type "Grading Pacific" in the top Find in HubSpot bar to verify migrated Pipedrive/Epicor records.',
         path: () => "/contacts",
         done: (c) => has(c, "search.used"),
         script: () => [{ t: "search.query", q: "Grading Pacific" }],
@@ -23,7 +23,7 @@ export const AMICO_101_SCRIPTS: Record<string, TrainingScript> = {
       {
         id: "duplicate-contact-check",
         title: "Verify unique-email Contact protection",
-        hint: "On CRM > Contacts, click + Add contact and test elena.rostova@gradingpacific.example to see duplicate protection.",
+        hint: "On CRM > Contacts, click Create contact (top right) and test elena.rostova@gradingpacific.example in the right drawer.",
         path: () => "/contacts",
         done: (c) => has(c, "contact.duplicateBlocked"),
         script: () => [{ t: "contact.duplicateChecked", email: "elena.rostova@gradingpacific.example" }],
@@ -31,7 +31,7 @@ export const AMICO_101_SCRIPTS: Record<string, TrainingScript> = {
       {
         id: "pipeline-filter",
         title: "Filter CRM > Deals to your division pipeline",
-        hint: "Open CRM > Deals and switch the Pipeline dropdown to Industrials.",
+        hint: "Open CRM > Deals and switch the Pipeline dropdown (next to List / Board) to Industrials.",
         path: () => "/deals",
         done: (c) => c.w.ui["deals.pipeline"] === "industrials" || has(c, "pipeline.industrials"),
         script: () => [{ t: "deal.selectPipeline", pipelineId: "industrials" }],
@@ -39,7 +39,7 @@ export const AMICO_101_SCRIPTS: Record<string, TrainingScript> = {
       {
         id: "board-layout",
         title: "Switch Deals to Board view",
-        hint: "Toggle the layout from Table to Board in the Deals toolbar.",
+        hint: "Toggle the layout from List to Board in the Deals toolbar.",
         path: () => "/deals",
         done: (c) => c.w.ui["deals.layout"] === "board" || has(c, "deals.boardView"),
         script: () => [{ t: "deal.setLayout", board: true }],
@@ -47,7 +47,7 @@ export const AMICO_101_SCRIPTS: Record<string, TrainingScript> = {
       {
         id: "notifications-tasks",
         title: "Check Notifications & My open tasks",
-        hint: "Open CRM > Tasks or click a notification in the top-right bell.",
+        hint: "Open Sales > Tasks or click a notification in the top-right HubSpot bell.",
         path: () => "/tasks",
         done: (c) => has(c, "seen.tasks") || has(c, "notif.opened"),
         script: () => [flag("seen.tasks")],
