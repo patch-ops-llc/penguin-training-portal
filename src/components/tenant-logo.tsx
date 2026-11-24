@@ -1,10 +1,13 @@
 /* eslint-disable @next/next/no-img-element */
 
+/** Intrinsic width:height of the five-diamond metallic AMICO® lockup SVGs. */
+export const AMICO_LOGO_ASPECT = 238 / 74;
+
 export const AMICO_BRAND = {
   slug: "amico",
   name: "AMICO",
   legalName: "Alabama Metal Industries Corporation",
-  accentColor: "#E25027",
+  accentColor: "#5C6672",
   logoLightSrc: "/brands/amico/amico-logo.svg",
   logoDarkSrc: "/brands/amico/amico-logo-white.svg",
   markSrc: "/brands/amico/amico-mark.svg",
@@ -35,10 +38,10 @@ export function AmicoLogo({
   return (
     <img
       src={src}
-      alt="AMICO — Alabama Metal Industries Corporation"
+      alt="AMICO® — Alabama Metal Industries Corporation"
       data-testid={testId}
       className={className}
-      style={{ height, width: "auto" }}
+      style={{ height, width: Math.round(height * AMICO_LOGO_ASPECT), maxWidth: "min(100%, 420px)" }}
     />
   );
 }

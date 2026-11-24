@@ -53,7 +53,7 @@ export function TenantLockup({
         tenantName={tenantName}
         accentColor={accentColor}
         mode="full"
-        height={Math.round(height * 1.15)}
+          height={Math.round(height * 1.35)}
         testId="launchpad-tenant-logo"
       />
       <span className="text-[13px] font-semibold text-ink-muted" aria-hidden="true">

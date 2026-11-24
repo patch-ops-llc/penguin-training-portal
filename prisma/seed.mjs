@@ -33,7 +33,8 @@ async function seedTenants() {
       defaultTrackIds: AMICO_DEFAULT_TRACKS,
       brandMeta: {
         subtitle: "HubSpot Sales Hub Go-Live Onboarding",
-        accentColor: "#0b6e6e",
+        accentColor: "#5C6672",
+        logoUrl: "/brands/amico/amico-logo.svg",
         hubId: "49108240",
         allowedDomains: ["amicoglobal.com"],
       },
@@ -41,6 +42,13 @@ async function seedTenants() {
     update: {
       divisionOptions: AMICO_DIVISIONS,
       defaultTrackIds: AMICO_DEFAULT_TRACKS,
+      brandMeta: {
+        subtitle: "HubSpot Sales Hub Go-Live Onboarding",
+        accentColor: "#5C6672",
+        logoUrl: "/brands/amico/amico-logo.svg",
+        hubId: "49108240",
+        allowedDomains: ["amicoglobal.com"],
+      },
     },
   });
   console.log(`[seed] Tenant ready: ${amico.name} (${amico.slug})`);

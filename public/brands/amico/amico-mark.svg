@@ -1,7 +1,34 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 1680 1680" role="img" aria-label="AMICO mark">
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 72 72" role="img" aria-label="AMICO mark">
   <title>AMICO</title>
-  <rect width="1680" height="1680" rx="280" fill="#E25027"/>
-  <g transform="translate(0.000000,1680.000000) scale(0.100000,-0.100000)" fill="#FFFFFF">
-    <path d="M6895 14468 c-7 -18 -1261 -2755 -2785 -6083 -1524 -3327 -2774 -6056 -2777 -6062 -4 -10 343 -13 1718 -13 l1724 0 2782 6078 c1530 3342 2785 6085 2789 6095 6 16 -80 17 -1715 17 l-1722 0 -14 -32z M11017 12940 c-13 -30 -401 -873 -861 -1872 l-838 -1818 843 -1827 c463 -1006 851 -1847 863 -1870 l21 -43 862 1870 862 1870 -855 1858 c-471 1021 -860 1864 -864 1872 -6 11 -15 0 -33 -40z M12476 5538 c-18 -40 -190 -410 -381 -822 -192 -413 -348 -755 -348 -760 0 -6 172 -380 381 -831 l381 -820 948 -3 949 -2 369 797 c202 439 375 812 383 829 14 31 12 37 -368 858 l-383 826 -949 0 -949 0 -33 -72z"/>
+  <defs>
+    <linearGradient id="amico-mark-steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#9BA3AB"/>
+      <stop offset="22%" stop-color="#F4F6F8"/>
+      <stop offset="38%" stop-color="#FFFFFF"/>
+      <stop offset="52%" stop-color="#D8DCE0"/>
+      <stop offset="68%" stop-color="#8E969E"/>
+      <stop offset="82%" stop-color="#5A626A"/>
+      <stop offset="100%" stop-color="#7A828A"/>
+    </linearGradient>
+    <linearGradient id="amico-mark-reflect" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="72%" stop-color="#C5CBD2" stop-opacity="0.45"/>
+      <stop offset="88%" stop-color="#4A525A" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="amico-mark-shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.4" flood-color="#1A1F24" flood-opacity="0.35"/>
+    </filter>
+    <clipPath id="amico-mark-clip">
+      <path d="M0,-28 L22,0 L0,28 L-22,0 Z"/>
+    </clipPath>
+  </defs>
+  <g transform="translate(36, 36)" filter="url(#amico-mark-shadow)">
+    <path d="M0,-28 L22,0 L0,28 L-22,0 Z" fill="url(#amico-mark-steel)" stroke="#2A3036" stroke-width="0.7"/>
+    <g clip-path="url(#amico-mark-clip)">
+      <rect x="-22" y="-7" width="44" height="26" fill="url(#amico-mark-reflect)"/>
+    </g>
+    <text y="3" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="30" fill="#0A0A0A" text-anchor="middle" dominant-baseline="central">A</text>
   </g>
 </svg>
