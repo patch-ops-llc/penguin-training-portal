@@ -3,7 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { inputClass, primaryButton } from "@/components/auth-card";
 import { PenguinLogo } from "@/components/brand";
-import { changePassword, requireUser } from "@/lib/auth";
+import { TenantLogo } from "@/components/tenant-logo";
+import { changePassword, requireUser, resolveActiveTenant } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { MIN_PASSWORD_LENGTH } from "@/lib/password.mjs";
 
@@ -36,19 +37,32 @@ async function changePasswordAction(formData: FormData): Promise<void> {
 
 export default async function AccountPage({ searchParams }: PageProps<"/account">) {
   const user = await requireUser();
+  const activeTenant = await resolveActiveTenant(user);
   const params = await searchParams;
   const record = await db.user.findUnique({ where: { id: user.id }, select: { passwordHash: true } });
   const hasPassword = Boolean(record?.passwordHash);
   const error = typeof params.error === "string" ? ERRORS[params.error] : undefined;
+  const navTenantSlug = user.tenantSlug ?? activeTenant?.slug ?? "amico";
+  const navTenantName = user.tenantName ?? activeTenant?.name ?? "AMICO";
 
   return (
     <div className="min-h-screen bg-[#f6f5fb] font-penguin text-[#16122b]">
       <header className="border-b border-[#e4e2ee] bg-white">
-        <div className="mx-auto flex max-w-[1240px] items-center gap-6 px-6 py-3">
-          <PenguinLogo height={30} />
-          <span className="rounded bg-penguin-soft px-2 py-0.5 text-[12px] font-semibold text-penguin">Training Portal</span>
-          <Link href="/launchpad" className="ml-auto text-[13px] font-medium text-penguin underline underline-offset-2">
-            Back to training launchpad
+        <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-4 px-6 py-3.5">
+          <Link href="/launchpad" className="inline-flex items-center gap-3" title="Return to training launchpad">
+            <TenantLogo tenantSlug={navTenantSlug} tenantName={navTenantName} mode="full" height={30} testId="account-tenant-logo" />
+          </Link>
+          <span className="h-5 w-px bg-[#e4e2ee]" aria-hidden="true" />
+          <span className="inline-flex items-center gap-1.5 text-[12px] text-[#5f5b73]">
+            <span>HubSpot Training Portal ·</span>
+            <PenguinLogo height={18} />
+          </span>
+          <Link
+            href="/launchpad"
+            data-testid="account-back-launchpad"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-[#cfcbe0] bg-[#faf9fd] px-3 py-1.5 text-[13px] font-semibold text-penguin hover:bg-penguin-soft"
+          >
+            ← Back to training launchpad
           </Link>
         </div>
       </header>
@@ -67,9 +81,15 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
             <dt className="text-[#5f5b73]">Portal role</dt>
             <dd>{ROLE_LABELS[user.role] ?? user.role}</dd>
           </div>
-          <div className="flex justify-between py-1">
+          <div className="flex items-center justify-between py-1">
             <dt className="text-[#5f5b73]">Organization</dt>
-            <dd>{user.tenantName ?? "Penguin Strategies (Global)"}</dd>
+            <dd>
+              {user.tenantSlug ? (
+                <TenantLogo tenantSlug={user.tenantSlug} tenantName={user.tenantName} mode="badge" height={18} />
+              ) : (
+                "Penguin Strategies (Global)"
+              )}
+            </dd>
           </div>
           {user.division ? (
             <div className="flex justify-between py-1">

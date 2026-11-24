@@ -271,7 +271,13 @@ export async function verifyMagicLink(token: string): Promise<VerifyResult> {
 }
 
 export type TokenLookup =
-  | { ok: true; kind: "invite" | "reset"; recordId: string; user: Pick<User, "id" | "email" | "name" | "status" | "tenantId"> }
+  | {
+      ok: true;
+      kind: "invite" | "reset";
+      recordId: string;
+      user: Pick<User, "id" | "email" | "name" | "status" | "tenantId">;
+      tenant: Pick<Tenant, "slug" | "name"> | null;
+    }
   | { ok: false };
 
 export async function lookupInvite(token: string): Promise<TokenLookup> {
@@ -281,7 +287,8 @@ export async function lookupInvite(token: string): Promise<TokenLookup> {
   });
   if (!invite || invite.revokedAt || invite.acceptedAt || invite.expiresAt.getTime() < Date.now()) return { ok: false };
   if (invite.user.status === "DISABLED" || !isTenantAllowed(invite.user)) return { ok: false };
-  return { ok: true, kind: "invite", recordId: invite.id, user: invite.user };
+  const tenant = invite.user.tenant ? { slug: invite.user.tenant.slug, name: invite.user.tenant.name } : null;
+  return { ok: true, kind: "invite", recordId: invite.id, user: invite.user, tenant };
 }
 
 export async function lookupReset(token: string): Promise<TokenLookup> {
@@ -291,7 +298,8 @@ export async function lookupReset(token: string): Promise<TokenLookup> {
   });
   if (!record || record.purpose !== "RESET" || record.usedAt || record.expiresAt.getTime() < Date.now()) return { ok: false };
   if (record.user.status === "DISABLED" || !isTenantAllowed(record.user)) return { ok: false };
-  return { ok: true, kind: "reset", recordId: record.id, user: record.user };
+  const tenant = record.user.tenant ? { slug: record.user.tenant.slug, name: record.user.tenant.name } : null;
+  return { ok: true, kind: "reset", recordId: record.id, user: record.user, tenant };
 }
 
 export type SetPasswordResult =

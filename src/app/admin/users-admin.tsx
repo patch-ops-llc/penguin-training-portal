@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { PenguinMark } from "@/components/brand";
+import { TenantLogo } from "@/components/tenant-logo";
 import { formatDateTimeUtc } from "@/lib/format";
 import {
   inviteUsersAction,
@@ -133,11 +135,14 @@ export function UsersAdmin({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-[24px] font-semibold tracking-tight">{tenant.name} — Users &amp; invitations</h1>
-        <p className="mt-1 text-[13.5px] text-[#5f5b73]">
-          Invite trainees or client admins individually or in bulk, assign divisions and required curriculum tracks, and issue password reset links.
-        </p>
+      <div className="flex flex-wrap items-center gap-3.5">
+        <TenantLogo tenantSlug={tenant.slug} tenantName={tenant.name} mode="mark" height={36} testId="admin-users-tenant-mark" />
+        <div>
+          <h1 className="text-[24px] font-semibold tracking-tight">{tenant.name} — Users &amp; invitations</h1>
+          <p className="mt-0.5 text-[13.5px] text-[#5f5b73]">
+            Invite trainees or client admins individually or in bulk, assign divisions and required curriculum tracks, and issue password reset links.
+          </p>
+        </div>
       </div>
 
       {/* Invite / Bulk Invite Card */}
@@ -272,8 +277,21 @@ export function UsersAdmin({
             return (
               <tr key={u.id} className="border-t border-[#eeecf5]" data-testid={`user-row-${u.email}`}>
                 <td className={cell}>
-                  {u.name ? <div className="font-medium">{u.name}</div> : null}
-                  <Clip className={muted}>{u.email}</Clip>
+                  <div className="flex items-start gap-2.5">
+                    <span className="mt-0.5 shrink-0">
+                      {u.role === "PENGUIN_ADMIN" ? (
+                        <span className="inline-grid h-5 w-5 place-items-center rounded-[5px] bg-penguin-soft text-penguin" title="Penguin Strategies">
+                          <PenguinMark size={12} />
+                        </span>
+                      ) : (
+                        <TenantLogo tenantSlug={tenant.slug} tenantName={tenant.name} mode="mark" height={20} />
+                      )}
+                    </span>
+                    <div className="min-w-0">
+                      {u.name ? <div className="font-medium">{u.name}</div> : null}
+                      <Clip className={muted}>{u.email}</Clip>
+                    </div>
+                  </div>
                 </td>
                 <td className={cellNoWrap}>
                   <span className="text-[12.5px] font-medium">

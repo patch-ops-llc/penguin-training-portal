@@ -1,4 +1,5 @@
 import { PenguinLogo } from "@/components/brand";
+import { AMICO_BRAND, TenantLogo } from "@/components/tenant-logo";
 
 export const inputClass =
   "w-full rounded-[8px] border border-[#bdb8d4] bg-white px-3 py-2.5 text-[14px] text-[#16122b] outline-none focus:border-penguin focus:ring-2 focus:ring-penguin/20";
@@ -6,13 +7,43 @@ export const primaryButton =
   "inline-flex items-center justify-center rounded-[8px] bg-penguin px-4 py-2.5 text-[14px] font-semibold text-white hover:bg-penguin-strong disabled:opacity-50";
 export const authLink = "font-medium text-penguin underline underline-offset-2 hover:text-penguin-strong";
 
-/** Signed-out screens carry Penguin's brand only — zero client or CRM spoilers before authentication. */
-export function AuthCard({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+/** Branded authentication card featuring the tenant logo lockup with subtle Penguin co-branding. */
+export function AuthCard({
+  title,
+  description,
+  tenantSlug = AMICO_BRAND.slug,
+  tenantName = AMICO_BRAND.name,
+  children,
+}: {
+  title: string;
+  description?: string;
+  tenantSlug?: string;
+  tenantName?: string;
+  children: React.ReactNode;
+}) {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-[#f6f5fb] px-6 py-12 font-penguin text-[#16122b]">
-      <div className="mb-7 flex flex-col items-center gap-3">
-        <PenguinLogo height={44} />
-        <p className="rounded-full bg-penguin-soft px-3 py-1 text-[12px] font-semibold tracking-wide text-penguin">Training Portal</p>
+      <div className="mb-7 flex flex-col items-center gap-3" data-testid="auth-brand-lockup">
+        <TenantLogo
+          tenantSlug={tenantSlug}
+          tenantName={tenantName}
+          mode="full"
+          height={44}
+          testId="auth-tenant-logo"
+        />
+        <div
+          data-testid="auth-cobranding"
+          className="flex flex-wrap items-center justify-center gap-2 rounded-full border border-[#e4e2ee] bg-white px-3.5 py-1 text-[12px] font-medium text-[#5f5b73] shadow-[0_1px_2px_rgba(22,18,43,0.04)]"
+        >
+          <span className="font-semibold text-[#16122b]">HubSpot Training Portal</span>
+          <span aria-hidden="true" className="text-[#b5b0c8]">
+            ·
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span>Powered by</span>
+            <PenguinLogo height={16} />
+          </span>
+        </div>
       </div>
       <div className="w-full max-w-[420px] rounded-2xl border border-[#e4e2ee] bg-white p-8 shadow-[0_6px_24px_rgba(28,19,64,0.08)]">
         <h1 className="text-[22px] font-semibold tracking-tight">{title}</h1>
@@ -20,7 +51,7 @@ export function AuthCard({ title, description, children }: { title: string; desc
         <div className="mt-6">{children}</div>
       </div>
       <p className="mt-6 max-w-[420px] text-center text-[12px] text-[#5f5b73]">
-        Built and run by Penguin Strategies. Access is by invitation. Sign-ins and training completion are logged.
+        HubSpot Training Portal · Powered by Penguin Strategies. Access is by invitation; sign-ins and training completion are logged.
       </p>
     </main>
   );

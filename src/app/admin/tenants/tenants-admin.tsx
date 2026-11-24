@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { TenantLogo } from "@/components/tenant-logo";
 import { formatDateTimeUtc } from "@/lib/format";
 import { switchActiveTenantAction } from "@/app/launchpad/actions";
 import { createTenantAction, setTenantStatusAction } from "../actions";
@@ -12,6 +13,7 @@ interface TenantSummary {
   id: string;
   slug: string;
   name: string;
+  accentColor: string;
   status: "ACTIVE" | "DISABLED";
   divisions: string[];
   defaultTrackIds: string[];
@@ -23,7 +25,7 @@ interface TenantSummary {
 }
 
 const COLUMNS: AdminColumn[] = [
-  { label: "Organization", width: 220 },
+  { label: "Organization", width: 250 },
   { label: "Divisions" },
   { label: "Status", width: 100 },
   { label: "Users", width: 80 },
@@ -120,8 +122,20 @@ export function TenantsAdmin({ tenants }: { tenants: TenantSummary[] }) {
           {tenants.map((t) => (
             <tr key={t.id} className="border-t border-[#eeecf5]" data-testid={`tenant-row-${t.slug}`}>
               <td className={cell}>
-                <div className="font-semibold">{t.name}</div>
-                <div className={`text-[12px] ${muted}`}>/{t.slug}</div>
+                <div className="flex items-center gap-3">
+                  <TenantLogo
+                    tenantSlug={t.slug}
+                    tenantName={t.name}
+                    accentColor={t.accentColor}
+                    mode="mark"
+                    height={30}
+                    testId={`tenant-badge-${t.slug}`}
+                  />
+                  <div className="min-w-0">
+                    <div className="font-semibold">{t.name}</div>
+                    <div className={`text-[12px] ${muted}`}>/{t.slug}</div>
+                  </div>
+                </div>
               </td>
               <td className={cell}>
                 <div className="text-[12.5px]">{t.divisions.join(", ") || "—"}</div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { TenantLockup } from "@/components/brand";
+import { AMICO_BRAND, TenantLogo } from "@/components/tenant-logo";
 import { emitEvent } from "@/lib/beacon";
 import { hasSavedSession } from "@/store/session";
 import type { TrainingModuleMeta, TrainingTrackMeta } from "@/tenants/types";
@@ -273,7 +274,7 @@ export function Launchpad({
     <div className="min-h-screen bg-surface-subtle text-ink">
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-4 px-8 py-4">
-          <TenantLockup tenantName={tenant.name} accentColor={tenant.accentColor} height={28} />
+          <TenantLockup tenantSlug={tenant.slug} tenantName={tenant.name} accentColor={tenant.accentColor} height={28} />
           <div className="flex flex-wrap items-center gap-3 text-[13px] text-ink-muted">
             {user.role === "PENGUIN_ADMIN" && allTenants.length > 1 ? (
               <form action={switchActiveTenantAction} className="flex items-center gap-1.5">
@@ -339,9 +340,24 @@ export function Launchpad({
           className="flex flex-wrap items-center justify-between gap-6 rounded-[14px] border border-line bg-surface px-7 py-6 shadow-[0_1px_3px_rgba(45,62,80,0.05)]"
         >
           <div className="max-w-[680px]">
-            <p className="font-penguin text-[12px] font-semibold uppercase tracking-[0.08em] text-penguin">
-              {tenant.name} HubSpot Onboarding &amp; Role Curriculum
-            </p>
+            <div className="mb-2.5 flex flex-wrap items-center gap-3">
+              <TenantLogo
+                tenantSlug={tenant.slug}
+                tenantName={tenant.name}
+                accentColor={tenant.accentColor}
+                mode="mark"
+                height={34}
+                testId="launchpad-hero-mark"
+              />
+              <div>
+                <p className="font-penguin text-[12px] font-semibold uppercase tracking-[0.08em] text-penguin">
+                  {tenant.name} HubSpot Onboarding &amp; Role Curriculum
+                </p>
+                {tenant.slug === AMICO_BRAND.slug ? (
+                  <p className="text-[11.5px] font-medium text-ink-muted">{AMICO_BRAND.legalName}</p>
+                ) : null}
+              </div>
+            </div>
             <h1 className="mt-1 font-display text-[26px] font-bold leading-tight text-ink">
               Welcome{user.name ? `, ${user.name.split(" ")[0]}` : ""}. Practice in a safe {tenant.name} sandbox.
             </h1>

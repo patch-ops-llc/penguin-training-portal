@@ -20,12 +20,13 @@ test("signed-out visitors are redirected to /login and APIs return 401", async (
   expect(eventsRes.status()).toBe(401);
 });
 
-test("sign-in page carries Penguin Strategies branding only (no HubSpot or tenant leakage)", async ({ page }) => {
+test("sign-in page displays official AMICO logo lockup with Penguin Strategies co-branding", async ({ page }) => {
   await page.goto("/login");
+  const amicoLogo = page.getByTestId("auth-tenant-logo");
+  await expect(amicoLogo).toBeVisible();
+  await expect(amicoLogo).toHaveAttribute("src", "/brands/amico/amico-logo.svg");
+  await expect(page.getByTestId("auth-cobranding")).toContainText("HubSpot Training Portal");
   await expect(page.getByText("Penguin Strategies").first()).toBeVisible();
-  const html = (await page.content()).toLowerCase();
-  expect(html).not.toContain("hubspot");
-  expect(html).not.toContain("amico");
 });
 
 test("wrong password is refused and recorded in the access log", async ({ page }) => {
