@@ -23,7 +23,12 @@ test("official AMICO brand SVG assets are served cleanly from /brands/amico/*", 
     const body = await res.text();
     expect(body).toContain("<svg");
     expect(body).toContain("<path");
-    expect(body).toContain("#E25027");
+    expect(body).toMatch(/amico-steel|amico-mark-steel|amico-steel-dark/);
+    if (asset.includes("amico-logo")) {
+      expect(body).toContain("AMICO");
+      expect((body.match(/<text[^>]*>A<\/text>/g) ?? []).length).toBeGreaterThanOrEqual(1);
+      expect((body.match(/<text[^>]*>O<\/text>/g) ?? []).length).toBeGreaterThanOrEqual(1);
+    }
   }
 });
 

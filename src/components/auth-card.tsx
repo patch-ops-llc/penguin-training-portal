@@ -28,7 +28,7 @@ export function AuthCard({
           tenantSlug={tenantSlug}
           tenantName={tenantName}
           mode="full"
-          height={44}
+          height={52}
           testId="auth-tenant-logo"
         />
         <div
