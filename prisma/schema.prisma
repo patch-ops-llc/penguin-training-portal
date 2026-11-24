@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum Role {
+  PENGUIN_ADMIN
+  CLIENT_ADMIN
+  TRAINEE
+}
+
+enum UserStatus {
+  INVITED
+  ACTIVE
+  DISABLED
+}
+
+enum TokenPurpose {
+  LOGIN
+  RESET
+}
+
+enum ProgressStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Tenant {
+  id              String       @id @default(cuid())
+  slug            String       @unique
+  name            String
+  status          TenantStatus @default(ACTIVE)
+  divisionOptions String[]     @default([])
+  defaultTrackIds String[]     @default([])
+  brandMeta       Json?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  users            User[]
+  invites          Invite[]
+  trainingProgress TrainingProgress[]
+  trainingAttempts TrainingAttempt[]
+  accessEvents     AccessEvent[]
+  adminAudits      AdminAudit[]
+}
+
+model User {
+  id               String     @id @default(cuid())
+  email            String     @unique
+  name             String?
+  role             Role       @default(TRAINEE)
+  status           UserStatus @default(INVITED)
+  /// Required in application logic for CLIENT_ADMIN and TRAINEE; nullable for global PENGUIN_ADMIN.
+  tenantId         String?
+  tenant           Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  division         String?
+  jobRole          String?
+  assignedTrackIds String[]   @default([])
+  trackLocked      Boolean    @default(false)
+  passwordHash     String?
+  lastLoginAt      DateTime?
+  invitedAt        DateTime?
+  invitedById      String?
+  invitedBy        User?      @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+  invitees         User[]     @relation("InvitedBy")
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  sessions         Session[]
+  invites          Invite[]
+  loginTokens      MagicLinkToken[]
+  trainingProgress TrainingProgress[]
+  trainingAttempts TrainingAttempt[]
+  events           AccessEvent[]
+
+  @@index([tenantId])
+  @@index([tenantId, role])
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  lastSeenAt DateTime @default(now())
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// A set-password link for an invited user. Only the HMAC of the token is stored.
+model Invite {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId   String?
+  tenant     Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  lastSentAt DateTime  @default(now())
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+
+  @@index([userId])
+  @@index([tenantId])
+}
+
+/// One-time links: magic-link sign-in (LOGIN) and admin-issued password resets (RESET).
+model MagicLinkToken {
+  id        String       @id @default(cuid())
+  tokenHash String       @unique
+  purpose   TokenPurpose @default(LOGIN)
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime     @default(now())
+
+  @@index([userId])
+}
+
+/// Durable learner completion state per user, tenant, track, and module.
+model TrainingProgress {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId        String
+  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trackId         String
+  moduleId        String
+  status          ProgressStatus @default(IN_PROGRESS)
+  furthestStep    Int            @default(0)
+  totalSteps      Int            @default(0)
+  completedAt     DateTime?
+  completedCount  Int            @default(0)
+  usedShowMeCount Int            @default(0)
+  lastAccessedAt  DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@unique([userId, tenantId, trackId, moduleId])
+  @@index([tenantId, trackId])
+  @@index([userId, tenantId])
+}
+
+/// One trainee running one training module attempt from start to finish. The id is generated in the browser.
+model TrainingAttempt {
+  id           String    @id
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId     String
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trackId      String
+  moduleId     String
+  startedAt    DateTime  @default(now())
+  lastEventAt  DateTime  @default(now())
+  endedAt      DateTime?
+  furthestStep Int       @default(0)
+  totalSteps   Int       @default(0)
+  completed    Boolean   @default(false)
+  resets       Int       @default(0)
+  showMeSteps  Int       @default(0)
+
+  @@index([tenantId, startedAt])
+  @@index([userId, startedAt])
+  @@index([startedAt])
+}
+
+/// Append-only access log: sign-ins and training module use. Nothing typed inside simulated HubSpot is stored.
+model AccessEvent {
+  id        String   @id @default(cuid())
+  at        DateTime @default(now())
+  type      String
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  /// Kept after the user row is removed, and set for failed logins where no user matches.
+  email     String?
+  sessionId String?
+  runId     String?
+  trackId   String?
+  moduleId  String?
+  step      Int?
+  ip        String?
+  userAgent String?
+  meta      Json?
+
+  @@index([at])
+  @@index([tenantId, at])
+  @@index([userId, at])
+  @@index([type, at])
+}
+
+model AdminAudit {
+  id          String   @id @default(cuid())
+  at          DateTime @default(now())
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  actorId     String?
+  actorEmail  String
+  action      String
+  targetId    String?
+  targetEmail String?
+  before      Json?
+  after       Json?
+
+  @@index([at])
+  @@index([tenantId, at])
+}
