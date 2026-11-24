@@ -9,7 +9,7 @@ import { Icon } from "../icons";
 import { A, Button, Card, Empty, Prop, statusTone, Tag } from "../ui";
 
 export function QuotePage({ id }: { id: string }) {
-  const { world, dispatch } = useShell();
+  const { pack, world, dispatch } = useShell();
   const quote = world.quotes.find((q) => q.id === id);
 
   if (!quote) {
@@ -29,29 +29,30 @@ export function QuotePage({ id }: { id: string }) {
   const deal = world.deals.find((d) => d.id === quote.dealId);
   const company = world.companies.find((c) => c.id === quote.companyId);
   const buyer = world.contacts.find((c) => c.id === quote.contactId);
+  const owner = pack.personas.find((u) => u.id === quote.ownerId);
   const totals = quoteTotals(quote);
 
   return (
-    <div className="mx-auto max-w-[1040px] space-y-5 px-6 py-6" data-testid="native-quote-page">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
+    <div className="min-h-full bg-[#f5f8fa]" data-testid="native-quote-page">
+      {/* Top HubSpot Commerce Quote Action Bar */}
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[#dfe3eb] bg-white px-6 py-3.5">
         <div>
-          <div className="flex items-center gap-3">
-            <A to={deal ? `/deals/${deal.id}` : "/quotes"} className="inline-flex items-center gap-1 text-[13px] font-semibold text-link hover:underline">
-              <Icon name="chevronLeft" size={14} /> {deal ? deal.name : "Quotes"}
-            </A>
-          </div>
-          <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="text-[21px] font-semibold">
+          <A to={deal ? `/deals/${deal.id}` : "/quotes"} className="hs-link inline-flex items-center gap-1 text-[12.5px]">
+            <Icon name="chevronLeft" size={14} /> {deal ? `Back to ${deal.name}` : "Quotes"}
+          </A>
+          <div className="mt-1 flex flex-wrap items-center gap-2.5">
+            <h1 className="hs-heading text-[19px] font-bold text-[#33475b]">
               {quote.number}: {quote.title}
             </h1>
             <Tag tone={statusTone(quote.status)}>{quote.status}</Tag>
+            <Tag tone="blue">HubSpot Commerce Quote</Tag>
           </div>
-          <p className="mt-0.5 text-[12.5px] text-ink-muted">
-            Native HubSpot Quote (Oracle-migrated Product Library) · Valid until {date(quote.validUntil)}
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-[3px] border border-[#dfe3eb] bg-[#f5f8fa] px-2.5 py-1 font-mono text-[11.5px] text-[#516f90]">
+            quotes.amico-sandbox.hubspot/{quote.number}
+          </span>
           {quote.status === "Draft" || quote.status === "Approved" ? (
             <Button
               variant="primary"
@@ -75,80 +76,184 @@ export function QuotePage({ id }: { id: string }) {
         </div>
       </header>
 
-      <Ext id="oracle-native-quotes">
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px]">
-          <Card title="Customer Quote Document">
-            <div className="mb-4 flex flex-wrap justify-between gap-4 rounded-[8px] bg-[#fafafa] p-4 text-[13px]">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">Prepared for</p>
-                <p className="mt-0.5 font-semibold">{company?.name ?? "Customer"}</p>
-                {buyer ? (
-                  <p className="text-ink-muted">
-                    {buyer.firstName} {buyer.lastName} ({buyer.email})
+      <div className="mx-auto max-w-[1140px] space-y-4 px-6 py-5">
+        {/* AMICO Quoting Decision Tree Distinction Banner */}
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[4px] border border-[#99d6e2] bg-[#e5f5f8] px-4 py-2.5 text-[12.5px] text-[#00677d]">
+          <span>
+            <strong>Native HubSpot Quote (Commerce Hub):</strong> Used for Oracle-migrated SKU catalogs &amp; buyer e-signature. For ERP-engineered orders, inspect read-only{" "}
+            <A to="/epicor-quotes" className="font-bold underline">
+              CRM &gt; Epicor Quotes
+            </A>
+            .
+          </span>
+          <Tag tone="teal">E-Signature Enabled</Tag>
+        </div>
+
+        <Ext id="oracle-native-quotes">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_310px]">
+            {/* Buyer-Facing HubSpot Quote Sheet Preview */}
+            <div className="overflow-hidden rounded-[4px] border border-[#cbd6e2] bg-white shadow-[0_8px_28px_rgba(31,42,55,0.08)]">
+              {/* Branded AMICO Document Header Band */}
+              <div className="flex flex-wrap items-start justify-between gap-4 bg-[#1f2a37] px-7 py-6 text-white">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#7fd1de]">
+                    AMICO · Alabama Metal Industries Corporation
                   </p>
-                ) : null}
+                  <h2 className="mt-1 text-[20px] font-bold !text-white">{quote.title}</h2>
+                  <p className="mt-0.5 text-[12px] text-[#cbd6e2]">
+                    3245 Fayette Ave · Birmingham, AL 35208 · Industrial &amp; Architectural Solutions
+                  </p>
+                </div>
+                <div className="text-right text-[12px]">
+                  <p className="font-mono text-[14px] font-bold text-white">{quote.number}</p>
+                  <p className="mt-0.5 text-[#cbd6e2]">Issued: {date(quote.createdAt)}</p>
+                  <p className="text-[#ffbfa8]">Expires: {date(quote.validUntil)}</p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">Quote reference</p>
-                <p className="mt-0.5 font-semibold">{quote.number}</p>
-                <p className="text-ink-muted">Valid through {date(quote.validUntil)}</p>
+
+              {/* Buyer & Sender Columns */}
+              <div className="grid grid-cols-2 gap-6 border-b border-[#dfe3eb] bg-[#f5f8fa] px-7 py-4 text-[12.5px]">
+                <div>
+                  <p className="text-[10.5px] font-bold uppercase tracking-wider text-[#516f90]">Prepared For</p>
+                  <p className="mt-1 text-[14px] font-semibold text-[#33475b]">{company?.name ?? "Customer"}</p>
+                  {buyer ? (
+                    <p className="text-[#516f90]">
+                      {buyer.firstName} {buyer.lastName} · {buyer.title}
+                    </p>
+                  ) : null}
+                  {buyer ? <p className="text-[#0091ae]">{buyer.email}</p> : null}
+                </div>
+                <div>
+                  <p className="text-[10.5px] font-bold uppercase tracking-wider text-[#516f90]">Prepared By</p>
+                  <p className="mt-1 text-[14px] font-semibold text-[#33475b]">{owner?.name ?? "AMICO Sales"}</p>
+                  <p className="text-[#516f90]">{owner?.title ?? "Account Executive"}</p>
+                  {deal ? <p className="text-[#516f90]">Division: {deal.division}</p> : null}
+                </div>
+              </div>
+
+              {/* Line Items Table */}
+              <div className="px-7 py-5">
+                <div className="hs-grid-wrap">
+                  <table className="hs-grid" data-testid="quote-lines-table">
+                    <thead>
+                      <tr>
+                        <th>SKU</th>
+                        <th>Item &amp; Specification</th>
+                        <th className="!text-right">Qty</th>
+                        <th className="!text-right">Unit Price</th>
+                        <th className="!text-right">Disc %</th>
+                        <th className="!text-right">Net Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {quote.lineItems.map((line, i) => {
+                        const disc = line.discountPct ?? quote.discountPct;
+                        const net = line.qty * line.unitPrice * (1 - disc / 100);
+                        return (
+                          <tr key={i}>
+                            <td className="font-mono text-[12px] font-semibold text-[#33475b]">{line.sku}</td>
+                            <td>
+                              <span className="font-medium text-[#33475b]">{line.name}</span>
+                              {line.oracleContractPrice ? (
+                                <span className="ml-2">
+                                  <Tag tone="teal">Oracle Contract Price</Tag>
+                                </span>
+                              ) : null}
+                            </td>
+                            <td className="text-right tabular-nums">{line.qty}</td>
+                            <td className="text-right tabular-nums">{money2(line.unitPrice)}</td>
+                            <td className="text-right tabular-nums">{disc}%</td>
+                            <td className="text-right font-semibold tabular-nums">{money2(net)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Quote Totals Summary */}
+                <div className="mt-4 flex justify-end">
+                  <div className="w-[280px] space-y-1.5 rounded-[4px] border border-[#dfe3eb] bg-[#f5f8fa] p-3.5 text-[13px]">
+                    <div className="flex justify-between text-[#516f90]">
+                      <span>Subtotal</span>
+                      <span className="tabular-nums">{money2(totals.subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-[#516f90]">
+                      <span>Contract Discount</span>
+                      <span className="tabular-nums">-{money2(totals.discount)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-[#cbd6e2] pt-2 text-[14.5px] font-bold text-[#33475b]">
+                      <span>Total (USD)</span>
+                      <span className="tabular-nums">{money2(totals.total)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Commercial Terms & Signature Block */}
+                <div className="mt-6 grid grid-cols-1 gap-4 border-t border-[#dfe3eb] pt-4 text-[12px] text-[#516f90] md:grid-cols-2">
+                  <div>
+                    <p className="font-bold uppercase tracking-wider text-[#33475b]">Terms &amp; Freight</p>
+                    <p className="mt-1">
+                      Net 30 days (subject to Epicor credit standing). FOB Shipping Point unless specified on PO. Pricing valid through {date(quote.validUntil)}.
+                    </p>
+                  </div>
+                  <div className="rounded-[4px] border border-dashed border-[#cbd6e2] bg-[#f5f8fa] p-3">
+                    <p className="font-bold uppercase tracking-wider text-[#33475b]">Buyer Acceptance &amp; E-Signature</p>
+                    {quote.status === "Accepted" ? (
+                      <div className="mt-1.5 text-[#006c5f]">
+                        <p className="font-serif text-[16px] italic">
+                          /s/ {buyer ? `${buyer.firstName} ${buyer.lastName}` : "Authorized Buyer"}
+                        </p>
+                        <p className="text-[11px] font-semibold">
+                          ✓ Electronically signed {quote.acceptedAt ? date(quote.acceptedAt) : "today"} · Attached to Deal
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="mt-1.5 text-[#7c98b6]">
+                        {quote.status === "Sent"
+                          ? "Awaiting countersignature from buyer via HubSpot E-Sign link…"
+                          : "Publish quote to generate buyer signature link."}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <table className="w-full border-collapse text-[13px]" data-testid="quote-lines-table">
-              <thead>
-                <tr className="border-b border-line-soft text-left text-[11.5px] uppercase tracking-wide text-ink-muted">
-                  <th className="px-3 py-2">SKU</th>
-                  <th className="px-3 py-2">Product</th>
-                  <th className="px-3 py-2 text-right">Qty</th>
-                  <th className="px-3 py-2 text-right">Unit Price</th>
-                  <th className="px-3 py-2 text-right">Disc %</th>
-                  <th className="px-3 py-2 text-right">Net</th>
-                </tr>
-              </thead>
-              <tbody>
-                {quote.lineItems.map((line, i) => {
-                  const disc = line.discountPct ?? quote.discountPct;
-                  const net = line.qty * line.unitPrice * (1 - disc / 100);
-                  return (
-                    <tr key={i} className="border-b border-line-soft">
-                      <td className="px-3 py-2.5 font-mono text-[12px] font-semibold">{line.sku}</td>
-                      <td className="px-3 py-2.5">{line.name}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">{line.qty}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">{money2(line.unitPrice)}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">{disc}%</td>
-                      <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{money2(net)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="border-t-2 border-line font-semibold">
-                  <td colSpan={5} className="px-3 py-2.5 text-right">
-                    Net Quote Total
-                  </td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">{money2(totals.total)}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </Card>
-
-          <div className="space-y-4">
-            <Card title="Quote Details">
-              <dl className="divide-y divide-line-soft">
-                <Prop label="Status">
-                  <Tag tone={statusTone(quote.status)}>{quote.status}</Tag>
-                </Prop>
-                <Prop label="Subtotal">{money2(totals.subtotal)}</Prop>
-                <Prop label="Discount">{money2(totals.discount)}</Prop>
-                <Prop label="Total">{money2(totals.total)}</Prop>
-                {quote.sentAt ? <Prop label="Published">{date(quote.sentAt)}</Prop> : null}
-                {quote.acceptedAt ? <Prop label="Signed by buyer">{date(quote.acceptedAt)}</Prop> : null}
-              </dl>
-            </Card>
+            {/* Right Metadata & Association Sidebar */}
+            <div className="space-y-4">
+              <Card title="Quote Details">
+                <dl>
+                  <Prop label="Quote Status">
+                    <Tag tone={statusTone(quote.status)}>{quote.status}</Tag>
+                  </Prop>
+                  <Prop label="Associated Deal">
+                    {deal ? (
+                      <A to={`/deals/${deal.id}`} className="hs-link">
+                        {deal.name}
+                      </A>
+                    ) : (
+                      "—"
+                    )}
+                  </Prop>
+                  <Prop label="Buyer Contact">
+                    {buyer ? (
+                      <A to={`/contacts/${buyer.id}`} className="hs-link">
+                        {buyer.firstName} {buyer.lastName}
+                      </A>
+                    ) : (
+                      "—"
+                    )}
+                  </Prop>
+                  <Prop label="Net Total">{money2(totals.total)}</Prop>
+                  {quote.sentAt ? <Prop label="Published">{date(quote.sentAt)}</Prop> : null}
+                  {quote.acceptedAt ? <Prop label="Signed by buyer">{date(quote.acceptedAt)}</Prop> : null}
+                </dl>
+              </Card>
+            </div>
           </div>
-        </div>
-      </Ext>
+        </Ext>
+      </div>
     </div>
   );
 }

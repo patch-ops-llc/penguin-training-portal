@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useShell } from "@/store/store";
 import type { StagePromptValues } from "@/store/world";
 import type { Deal, DealStage } from "@/tenants/types";
-import { Button, Modal } from "../ui";
+import { Icon } from "../icons";
+import { Button, Modal, Tag } from "../ui";
 
 /**
- * Stage Properties Gate Modal triggered when moving a Deal into a stage with `prompt`
- * (`Design / Estimating` -> Drawings Received, `Engineering Review` -> Engineering Required,
- * `Awarded - Won` -> required Project / Handoff Required + PO/Order #, `Closed - Lost` -> required Lost Reason).
+ * Authentic HubSpot Required-Property Stage Gate Modal:
+ * "Properties required for [Stage Name]" — disables Save until all required `*` stage properties are populated.
  */
 export function StagePromptModal({
   deal,
@@ -21,7 +22,11 @@ export function StagePromptModal({
   onCancel: () => void;
   onConfirm: (values: StagePromptValues) => void;
 }) {
+  const { pack } = useShell();
   const prompt = targetStage.prompt;
+  const pipeline = pack.pipelines.find((p) => p.id === deal.pipelineId);
+  const currentStageLabel = pipeline?.stages.find((s) => s.id === deal.stage)?.label ?? deal.stage;
+
   const [drawingsReceived, setDrawingsReceived] = useState<Deal["drawingsReceived"]>(deal.drawingsReceived ?? "Yes");
   const [engineeringRequired, setEngineeringRequired] = useState<Deal["engineeringRequired"]>(deal.engineeringRequired ?? "In-house");
   const [handoffRequired, setHandoffRequired] = useState<Deal["handoffRequired"]>(deal.handoffRequired ?? "Yes");
@@ -31,20 +36,23 @@ export function StagePromptModal({
   const [lostReason, setLostReason] = useState(deal.lostReason ?? "");
   const [lostReasonDetail, setLostReasonDetail] = useState(deal.lostReasonDetail ?? "");
   const [lostNotes, setLostNotes] = useState(deal.lostNotes ?? "");
-  const [validationError, setValidationError] = useState<string | null>(null);
 
   if (!prompt) return null;
 
+  const missingMessage =
+    prompt.field === "handoffRequired" && !handoffRequired
+      ? "Project / Handoff Required is required before moving to Awarded."
+      : prompt.field === "handoffRequired" && prompt.includePoFields && !customerPo.trim()
+        ? "Customer PO # is required before moving to Awarded."
+        : prompt.field === "lostReason" && !lostReason
+          ? "Lost Reason is required before closing a deal as Lost."
+          : null;
+
+  const isValid = !missingMessage;
+
   function submit() {
-    if (prompt?.field === "handoffRequired") {
-      if (!handoffRequired) {
-        setValidationError("Select whether a Project / PM Handoff is required before marking Awarded.");
-        return;
-      }
-      if (prompt.includePoFields && !customerPo.trim()) {
-        setValidationError("Customer PO # is required at Awarded.");
-        return;
-      }
+    if (!isValid || !prompt) return;
+    if (prompt.field === "handoffRequired") {
       onConfirm({
         handoffRequired,
         customerPo: customerPo.trim(),
@@ -53,11 +61,7 @@ export function StagePromptModal({
       });
       return;
     }
-    if (prompt?.field === "lostReason") {
-      if (!lostReason) {
-        setValidationError("Lost Reason is required before closing a deal as Lost.");
-        return;
-      }
+    if (prompt.field === "lostReason") {
       onConfirm({
         lostReason,
         lostReasonDetail: lostReasonDetail.trim(),
@@ -65,11 +69,11 @@ export function StagePromptModal({
       });
       return;
     }
-    if (prompt?.field === "drawingsReceived") {
+    if (prompt.field === "drawingsReceived") {
       onConfirm({ drawingsReceived: drawingsReceived ?? "Yes" });
       return;
     }
-    if (prompt?.field === "engineeringRequired") {
+    if (prompt.field === "engineeringRequired") {
       onConfirm({ engineeringRequired: engineeringRequired ?? "In-house" });
       return;
     }
@@ -78,29 +82,54 @@ export function StagePromptModal({
 
   return (
     <Modal
-      title={`${prompt.label} · Move to ${targetStage.label}`}
+      title={`Properties required for ${targetStage.label}`}
+      subtitle={`Update deal stage · ${deal.name}`}
       onClose={onCancel}
+      width={540}
       testId="stage-prompt-modal"
       footer={
         <>
-          <Button onClick={onCancel}>Cancel</Button>
-          <Button variant="primary" onClick={submit} data-testid="stage-prompt-save">
-            Save &amp; update stage
+          <Button variant="primary" disabled={!isValid} onClick={submit} data-testid="stage-prompt-save">
+            Save
           </Button>
+          <Button onClick={onCancel}>Cancel</Button>
         </>
       }
     >
-      <div className="space-y-4 text-[13.5px]">
-        {prompt.helperText ? <p className="text-[13px] text-ink-muted">{prompt.helperText}</p> : null}
+      <div className="space-y-4 text-[13px]">
+        {/* Stage Transition Header Strip */}
+        <div className="flex items-center justify-between rounded-[4px] border border-[#dfe3eb] bg-[#f5f8fa] px-3.5 py-2.5 text-[12px]">
+          <div className="flex items-center gap-2">
+            <Tag tone="neutral">{currentStageLabel}</Tag>
+            <Icon name="arrowRight" size={13} className="text-[#516f90]" />
+            <Tag tone="blue">{targetStage.label}</Tag>
+          </div>
+          <span className="font-medium text-[#516f90]">
+            {targetStage.probability > 0 && targetStage.probability <= 1
+              ? Math.round(targetStage.probability * 100)
+              : Math.round(targetStage.probability)}
+            % probability
+          </span>
+        </div>
+
+        <p className="text-[12.5px] text-[#516f90]">
+          {prompt.helperText ??
+            `Complete the required stage properties below before advancing this deal to ${targetStage.label}.`}
+        </p>
 
         {prompt.field === "drawingsReceived" ? (
           <label className="block space-y-1">
-            <span className="font-semibold">{prompt.label} *</span>
+            <span className="font-semibold text-[#33475b]">
+              {prompt.label} <span className="text-[#f2545b]">*</span>
+            </span>
+            <span className="block text-[11.5px] text-[#516f90]">
+              Indicates whether architectural / perimeter drawings are attached for takeoff.
+            </span>
             <select
               value={drawingsReceived ?? "Yes"}
               onChange={(e) => setDrawingsReceived(e.target.value as Deal["drawingsReceived"])}
               data-testid="prompt-drawings-select"
-              className="h-9 w-full rounded-[6px] border border-line bg-white px-3"
+              className="hs-input w-full !bg-white"
             >
               {prompt.options.map((opt) => (
                 <option key={opt} value={opt}>
@@ -113,12 +142,17 @@ export function StagePromptModal({
 
         {prompt.field === "engineeringRequired" ? (
           <label className="block space-y-1">
-            <span className="font-semibold">{prompt.label} *</span>
+            <span className="font-semibold text-[#33475b]">
+              {prompt.label} <span className="text-[#f2545b]">*</span>
+            </span>
+            <span className="block text-[11.5px] text-[#516f90]">
+              Selecting In-house or Third-party automatically assigns an Engineering Review task to the Estimator.
+            </span>
             <select
               value={engineeringRequired ?? "In-house"}
               onChange={(e) => setEngineeringRequired(e.target.value as Deal["engineeringRequired"])}
               data-testid="prompt-engineering-select"
-              className="h-9 w-full rounded-[6px] border border-line bg-white px-3"
+              className="hs-input w-full !bg-white"
             >
               {prompt.options.map((opt) => (
                 <option key={opt} value={opt}>
@@ -132,12 +166,17 @@ export function StagePromptModal({
         {prompt.field === "handoffRequired" ? (
           <>
             <label className="block space-y-1">
-              <span className="font-semibold">{prompt.label} *</span>
+              <span className="font-semibold text-[#33475b]">
+                {prompt.label} <span className="text-[#f2545b]">*</span>
+              </span>
+              <span className="block text-[11.5px] text-[#516f90]">
+                Setting Yes auto-creates a linked HubSpot Project and assigns post-award delivery to the Security PM.
+              </span>
               <select
                 value={handoffRequired ?? "Yes"}
                 onChange={(e) => setHandoffRequired(e.target.value as Deal["handoffRequired"])}
                 data-testid="prompt-handoff-select"
-                className="h-9 w-full rounded-[6px] border border-line bg-white px-3"
+                className="hs-input w-full !bg-white"
               >
                 {prompt.options.map((opt) => (
                   <option key={opt} value={opt}>
@@ -146,39 +185,42 @@ export function StagePromptModal({
                 ))}
               </select>
             </label>
+
             {prompt.includePoFields ? (
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <label className="block space-y-1">
-                    <span className="font-semibold">Customer PO # *</span>
+                    <span className="font-semibold text-[#33475b]">
+                      Customer PO # <span className="text-[#f2545b]">*</span>
+                    </span>
                     <input
                       type="text"
                       value={customerPo}
                       onChange={(e) => setCustomerPo(e.target.value)}
-                      placeholder="PO-99418"
+                      placeholder="PO-VCC-44910"
                       data-testid="prompt-customer-po"
-                      className="h-9 w-full rounded-[6px] border border-line bg-white px-3"
+                      className="hs-input w-full !bg-white"
                     />
                   </label>
                   <label className="block space-y-1">
-                    <span className="font-semibold">AMICO Order #</span>
+                    <span className="font-semibold text-[#33475b]">AMICO Order #</span>
                     <input
                       type="text"
                       value={amicoOrderNumber}
                       onChange={(e) => setAmicoOrderNumber(e.target.value)}
                       placeholder="SO-88412"
                       data-testid="prompt-amico-order"
-                      className="h-9 w-full rounded-[6px] border border-line bg-white px-3"
+                      className="hs-input w-full !bg-white"
                     />
                   </label>
                 </div>
                 <label className="block space-y-1">
-                  <span className="font-semibold">PO Received Date</span>
+                  <span className="font-semibold text-[#33475b]">PO Received Date</span>
                   <input
                     type="date"
                     value={poReceivedDate}
                     onChange={(e) => setPoReceivedDate(e.target.value)}
-                    className="h-9 w-full rounded-[6px] border border-line bg-white px-3"
+                    className="hs-input w-full !bg-white"
                   />
                 </label>
               </>
@@ -189,14 +231,19 @@ export function StagePromptModal({
         {prompt.field === "lostReason" ? (
           <>
             <label className="block space-y-1">
-              <span className="font-semibold">{prompt.label} *</span>
+              <span className="font-semibold text-[#33475b]">
+                {prompt.label} <span className="text-[#f2545b]">*</span>
+              </span>
+              <span className="block text-[11.5px] text-[#516f90]">
+                Required for AMICO executive win/loss reporting across divisions.
+              </span>
               <select
                 value={lostReason}
                 onChange={(e) => setLostReason(e.target.value)}
                 data-testid="prompt-lost-reason"
-                className="h-9 w-full rounded-[6px] border border-line bg-white px-3"
+                className="hs-input w-full !bg-white"
               >
-                <option value="">Select a required reason…</option>
+                <option value="">Please select…</option>
                 {prompt.options.map((r) => (
                   <option key={r} value={r}>
                     {r}
@@ -207,24 +254,24 @@ export function StagePromptModal({
             {prompt.includeLossDetails ? (
               <>
                 <label className="block space-y-1">
-                  <span className="font-semibold">Competitor / Secondary Detail</span>
+                  <span className="font-semibold text-[#33475b]">Competitor / Secondary Detail</span>
                   <input
                     type="text"
                     value={lostReasonDetail}
                     onChange={(e) => setLostReasonDetail(e.target.value)}
-                    placeholder="e.g., Competitor offered 4-week lead time"
+                    placeholder="e.g., Incumbent regional GC lost prime bid"
                     data-testid="prompt-lost-detail"
-                    className="h-9 w-full rounded-[6px] border border-line bg-white px-3"
+                    className="hs-input w-full !bg-white"
                   />
                 </label>
                 <label className="block space-y-1">
-                  <span className="font-semibold">Closed Lost Notes</span>
+                  <span className="font-semibold text-[#33475b]">Closed Lost Notes</span>
                   <textarea
                     rows={2}
                     value={lostNotes}
                     onChange={(e) => setLostNotes(e.target.value)}
                     placeholder="Post-bid feedback from estimator or GC…"
-                    className="w-full rounded-[6px] border border-line bg-white p-2.5"
+                    className="hs-input w-full !bg-white"
                   />
                 </label>
               </>
@@ -232,9 +279,13 @@ export function StagePromptModal({
           </>
         ) : null}
 
-        {validationError ? (
-          <p role="alert" className="rounded-[6px] border border-[#f3b4b4] bg-[#fdf1f1] px-3 py-2 text-[12.5px] font-medium text-[#99201a]">
-            {validationError}
+        {missingMessage ? (
+          <p
+            role="alert"
+            className="flex items-center gap-2 rounded-[4px] border border-[#f5c26b] bg-[#fef6e7] px-3 py-2 text-[12px] font-medium text-[#8a5300]"
+          >
+            <Icon name="warning" size={14} className="shrink-0 text-[#d97706]" />
+            <span>{missingMessage}</span>
           </p>
         ) : null}
       </div>

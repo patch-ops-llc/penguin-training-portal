@@ -127,10 +127,10 @@ test("AMICO Deals pipelines, Stage Gate modals, Multi-Owner, Workbook Quote, Epi
   await page.getByTestId("ingest-wb-wb-rev2").click();
   await expect(page.getByTestId("deal-amount")).toContainText("$485,000");
 
-  // Stage Gate 3: Closed - Lost requires Lost Reason (validation blocks empty submit)
+  // Stage Gate 3: Closed - Lost requires Lost Reason (Save disabled until required * field is filled)
   await page.getByTestId("deal-stage-closed-lost").click();
   await expect(page.getByTestId("stage-prompt-modal")).toBeVisible();
-  await page.getByTestId("stage-prompt-save").click();
+  await expect(page.getByTestId("stage-prompt-save")).toBeDisabled();
   await expect(page.getByTestId("stage-prompt-modal").getByRole("alert")).toContainText(/Lost Reason is required/i);
   await page.click("button:has-text('Cancel')");
 

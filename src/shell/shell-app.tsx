@@ -8,6 +8,8 @@ import { ShellProvider, useShell } from "@/store/store";
 import type { Pack, TrainingTrackMeta } from "@/tenants/types";
 import { Chrome } from "./chrome";
 import { CompletionCard } from "./completion-card";
+import "./hubspot.css";
+import { RecordPreviewHost } from "./record-preview-drawer";
 import { Routes } from "./routes";
 import { TrainingBar } from "./training-bar";
 import { cx } from "./ui";
@@ -35,10 +37,15 @@ function fetchPack(tenantSlug: string, trackId: string, version: string): Promis
 function Frame() {
   const { route, highlight, completionOpen } = useShell();
   return (
-    <div className={cx("flex h-screen min-w-[1180px] flex-col overflow-hidden", highlight && "px-highlight")} data-testid="shell" data-path={route.path}>
+    <div
+      className={cx("hs-app flex h-screen min-w-[1180px] flex-col overflow-hidden", highlight && "px-highlight")}
+      data-testid="shell"
+      data-path={route.path}
+    >
       <Chrome>
         <Routes />
       </Chrome>
+      <RecordPreviewHost />
       {highlight ? <div className="px-dim" aria-hidden="true" /> : null}
       <TrainingBar />
       {completionOpen ? <CompletionCard /> : null}
@@ -73,7 +80,7 @@ export function ShellApp({
       url.searchParams.delete("fresh");
       window.history.replaceState(null, "", url.pathname + url.search);
     }
-    const loc = window.location.pathname + window.location.search;
+    const loc = window.location.pathname + url.search;
 
     fetchPack(tenantSlug, trackId, packVersion)
       .then((pack) => {
@@ -96,9 +103,9 @@ export function ShellApp({
 
   if (failed) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-3 bg-hs-bg">
-        <p className="text-[16px] font-semibold">The training sandbox could not load.</p>
-        <p className="text-[13.5px] text-ink-muted">Your session may have expired or you may not have access to this track.</p>
+      <div className="hs-app flex h-screen flex-col items-center justify-center gap-3 bg-[#f5f8fa]">
+        <p className="text-[16px] font-semibold text-[#33475b]">The training sandbox could not load.</p>
+        <p className="text-[13px] text-[#516f90]">Your session may have expired or you may not have access to this track.</p>
         <a href="/launchpad" className="hs-link">
           Back to Training Launchpad
         </a>
@@ -107,7 +114,7 @@ export function ShellApp({
   }
 
   if (!loaded || loaded.trackId !== trackId) {
-    return <div className="h-screen bg-nav" data-testid="shell-loading" />;
+    return <div className="hs-app h-screen bg-[#1f2a37]" data-testid="shell-loading" />;
   }
 
   return (

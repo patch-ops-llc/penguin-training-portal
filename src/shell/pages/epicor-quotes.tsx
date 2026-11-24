@@ -3,16 +3,16 @@
 import { useSeen, useShell } from "@/store/store";
 import type { EpicorQuote } from "@/tenants/types";
 import { Ext } from "../ext";
-import { date, money2 } from "../format";
+import { date, money2, shortDate } from "../format";
 import { Icon } from "../icons";
 import { A, Card, Empty, Prop, statusTone, Tag } from "../ui";
-import { IndexPage, PreviewShell, type Column, type View } from "./index-table";
+import { IndexPage, type Column, type View } from "./index-table";
 
 export function EpicorQuotesIndex() {
-  const { world } = useShell();
+  const { world, dispatch } = useShell();
 
   const views: View<EpicorQuote>[] = [
-    { id: "all", label: "All Epicor quotes", filter: () => true },
+    { id: "all", label: "All Epicor quotes", filter: () => true, closable: false },
     { id: "sent", label: "Sent / Pending SO", filter: (q) => q.status === "Sent" || q.status === "Pending SO" },
     { id: "accepted", label: "Accepted", filter: (q) => q.status === "Accepted" },
   ];
@@ -23,15 +23,15 @@ export function EpicorQuotesIndex() {
       label: "Epicor Quote #",
       sort: (q) => q.quoteNumber,
       cell: (q) => (
-        <A to={`/epicor-quotes/${q.id}`} className="hs-link font-semibold" data-testid={`epicor-quote-link-${q.id}`}>
+        <A to={`/epicor-quotes/${q.id}`} className="hs-link font-mono" data-testid={`epicor-quote-link-${q.id}`}>
           {q.quoteNumber}
         </A>
       ),
     },
-    { id: "title", label: "Description", cell: (q) => q.title },
+    { id: "title", label: "Quote Description", cell: (q) => <span className="font-medium text-[#33475b]">{q.title}</span> },
     {
       id: "company",
-      label: "Company",
+      label: "Associated Company",
       cell: (q) => {
         const c = world.companies.find((x) => x.id === q.companyId);
         return c ? (
@@ -43,37 +43,27 @@ export function EpicorQuotesIndex() {
         );
       },
     },
-    { id: "division", label: "Division", cell: (q) => q.division },
-    { id: "source", label: "Source System", cell: (q) => q.sourceSystem },
+    { id: "division", label: "Division", cell: (q) => <Tag tone="neutral">{q.division}</Tag> },
+    { id: "source", label: "ERP Source", cell: (q) => <Tag tone="teal">{q.sourceSystem}</Tag> },
     { id: "status", label: "Status", cell: (q) => <Tag tone={statusTone(q.status)}>{q.status}</Tag> },
-    { id: "amount", label: "Total", align: "right", sort: (q) => q.total, cell: (q) => money2(q.total) },
-    { id: "erp", label: "ERP Cust ID", cell: (q) => q.epicorCustomerId },
-    { id: "exp", label: "Expires", cell: (q) => date(q.expirationDate) },
+    { id: "amount", label: "Quote Total", align: "right", sort: (q) => q.total, cell: (q) => <span className="font-semibold">{money2(q.total)}</span> },
+    { id: "erp", label: "Epicor Cust ID", cell: (q) => <span className="font-mono text-[12px]">{q.epicorCustomerId}</span> },
+    { id: "exp", label: "Expiration Date", cell: (q) => shortDate(q.expirationDate) },
   ];
 
   return (
     <Ext id="epicor-readonly-sync">
       <IndexPage
         title="Epicor Quotes"
+        objectSwitcherLabel="Epicor Quotes"
         noun="Epicor quote"
         rows={world.epicorQuotes}
         columns={columns}
         views={views}
         rowKey={(q) => q.id}
         searchText={(q) => `${q.quoteNumber} ${q.title} ${q.division} ${q.epicorCustomerId} ${q.customerPo}`}
-        toolbar={<Tag tone="teal">Synced from Epicor ERP · Read-Only</Tag>}
-        preview={(q, close) => (
-          <PreviewShell title={`${q.quoteNumber} · ${q.title}`} subtitle={`${q.division} · Synced from ${q.sourceSystem}`} to={`/epicor-quotes/${q.id}`} onClose={close}>
-            <dl>
-              <Prop label="Status">
-                <Tag tone={statusTone(q.status)}>{q.status}</Tag>
-              </Prop>
-              <Prop label="Total amount">{money2(q.total)}</Prop>
-              <Prop label="ERP Customer ID">{q.epicorCustomerId}</Prop>
-              <Prop label="Valid until">{date(q.expirationDate)}</Prop>
-            </dl>
-          </PreviewShell>
-        )}
+        onPreviewRow={(q) => dispatch({ t: "ui", k: "preview", v: `epicor-quote:${q.id}` })}
+        headerActions={<Tag tone="teal">Custom Object · Synced Read-Only from Epicor ERP</Tag>}
       />
     </Ext>
   );
@@ -104,138 +94,163 @@ export function EpicorQuoteRecord({ id }: { id: string }) {
   const dealLines = deal?.lineItems ?? [];
 
   return (
-    <div className="min-h-full" data-testid="epicor-quote-record">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-line bg-white px-6 py-4">
-        <div>
-          <A to="/epicor-quotes" className="inline-flex items-center gap-1 text-[13px] font-semibold text-link hover:underline">
+    <div className="hs-record-3pane" data-testid="epicor-quote-record">
+      {/* LEFT SIDEBAR */}
+      <aside className="hs-record-left hs-scroll">
+        <div className="p-4">
+          <A to="/epicor-quotes" className="hs-link inline-flex items-center gap-1 text-[12.5px]">
             <Icon name="chevronLeft" size={14} /> Epicor Quotes
           </A>
-          <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="text-[20px] font-semibold">
+          <div className="mt-2.5">
+            <h1 className="text-[17.5px] font-bold text-[#33475b]">
               {eq.quoteNumber} · {eq.title}
             </h1>
-            <Tag tone={statusTone(eq.status)}>{eq.status}</Tag>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              <Tag tone={statusTone(eq.status)}>{eq.status}</Tag>
+              <Tag tone="teal">{eq.sourceSystem}</Tag>
+            </div>
+            <p className="mt-2 text-[17px] font-bold tabular-nums text-[#33475b]">{money2(eq.total)}</p>
           </div>
-          <p className="mt-0.5 text-[12.5px] text-ink-muted">
-            {eq.division} · Source: {eq.sourceSystem} · ERP Customer {eq.epicorCustomerId}
-          </p>
         </div>
+
+        <div className="border-t border-[#dfe3eb] px-4 py-3">
+          <p className="text-[12.5px] font-bold text-[#33475b]">About this Epicor Quote</p>
+          <dl className="mt-1">
+            <Prop label="Epicor Quote #">{eq.quoteNumber}</Prop>
+            <Prop label="Epicor Record ID">{eq.epicorQuoteId}</Prop>
+            <Prop label="Status">
+              <Tag tone={statusTone(eq.status)}>{eq.status}</Tag>
+            </Prop>
+            <Prop label="Division">{eq.division}</Prop>
+            <Prop label="Source ERP System">{eq.sourceSystem}</Prop>
+            <Prop label="Epicor Customer ID">{eq.epicorCustomerId}</Prop>
+            <Prop label="Customer PO #">{eq.customerPo || "Pending PO"}</Prop>
+            {eq.salesOrderNumber ? <Prop label="Epicor Sales Order #">{eq.salesOrderNumber}</Prop> : null}
+            <Prop label="Created in ERP">{date(eq.createdAt)}</Prop>
+            <Prop label="Expiration Date">{date(eq.expirationDate)}</Prop>
+          </dl>
+        </div>
+      </aside>
+
+      {/* MIDDLE CANVAS */}
+      <section className="hs-record-center hs-scroll p-5 space-y-4">
         <Ext id="epicor-readonly-sync">
           <div
-            className="flex items-center gap-2 rounded-[8px] border border-[#b6dfdc] bg-[#eaf7f6] px-3.5 py-2 text-[12.5px] font-semibold text-[#00514f]"
+            className="flex items-center gap-2.5 rounded-[4px] border border-[#99e2d8] bg-[#e5f8f6] px-4 py-3 text-[12.5px] font-semibold text-[#006c5f]"
             data-testid="epicor-readonly-banner"
           >
-            <Icon name="lock" size={15} />
-            Read-only custom object · Revise pricing in {eq.sourceSystem} (auto-syncs to HubSpot)
+            <Icon name="lock" size={15} className="shrink-0" />
+            <span>
+              Read-only ERP custom object · Do not recreate this quote in HubSpot Commerce Quotes — revise pricing in {eq.sourceSystem} and it syncs automatically.
+            </span>
           </div>
         </Ext>
-      </header>
 
-      <div className="grid grid-cols-1 gap-5 p-6 lg:grid-cols-[290px_1fr_300px]">
-        <div className="space-y-4">
-          <Card title="About this Epicor Quote">
-            <dl className="divide-y divide-line-soft">
-              <Prop label="Epicor Quote #">{eq.quoteNumber}</Prop>
-              <Prop label="Epicor Record ID">{eq.epicorQuoteId}</Prop>
-              <Prop label="Quote Status">
-                <Tag tone={statusTone(eq.status)}>{eq.status}</Tag>
-              </Prop>
-              <Prop label="Division">{eq.division}</Prop>
-              <Prop label="Source System">{eq.sourceSystem}</Prop>
-              <Prop label="Total Quote Value">{money2(eq.total)}</Prop>
-              <Prop label="ERP Customer ID">{eq.epicorCustomerId}</Prop>
-              {eq.salesOrderNumber ? <Prop label="Sales Order #">{eq.salesOrderNumber}</Prop> : null}
-              <Prop label="Created in ERP">{date(eq.createdAt)}</Prop>
-              <Prop label="Expiration Date">{date(eq.expirationDate)}</Prop>
-            </dl>
-          </Card>
-        </div>
+        <Card title="Data highlights">
+          <div className="grid grid-cols-4 gap-3 text-center">
+            <div className="rounded-[3px] bg-[#f5f8fa] p-2.5">
+              <p className="text-[11px] font-semibold uppercase text-[#516f90]">Quote Value</p>
+              <p className="mt-1 text-[14px] font-bold tabular-nums text-[#33475b]">{money2(eq.total)}</p>
+            </div>
+            <div className="rounded-[3px] bg-[#f5f8fa] p-2.5">
+              <p className="text-[11px] font-semibold uppercase text-[#516f90]">ERP Source</p>
+              <p className="mt-1 text-[13px] font-bold text-[#0091ae]">{eq.sourceSystem}</p>
+            </div>
+            <div className="rounded-[3px] bg-[#f5f8fa] p-2.5">
+              <p className="text-[11px] font-semibold uppercase text-[#516f90]">Customer PO</p>
+              <p className="mt-1 text-[13px] font-bold text-[#33475b]">{eq.customerPo || "Pending"}</p>
+            </div>
+            <div className="rounded-[3px] bg-[#f5f8fa] p-2.5">
+              <p className="text-[11px] font-semibold uppercase text-[#516f90]">Valid Until</p>
+              <p className="mt-1 text-[13px] font-bold text-[#33475b]">{shortDate(eq.expirationDate)}</p>
+            </div>
+          </div>
+        </Card>
 
-        <div className="space-y-4">
-          <Card title="Synced ERP Quote Summary (Read-Only)" right={<Tag>Editing disabled in HubSpot</Tag>}>
-            <p className="mb-3 text-[13px] text-ink-muted">
-              Epicor, Paperless Parts, and MS Access remain the pricing system of record for {eq.division}. Reps inspect quote status, expiration, and totals here in HubSpot without opening ERP.
-            </p>
-            {dealLines.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-[13px]" data-testid="epicor-line-items">
-                  <thead>
-                    <tr className="border-b border-line-soft bg-[#fafafa] text-left text-[11.5px] uppercase tracking-wide text-ink-muted">
-                      <th className="px-3 py-2">Part / SKU</th>
-                      <th className="px-3 py-2">Description</th>
-                      <th className="px-3 py-2 text-right">Qty</th>
-                      <th className="px-3 py-2 text-right">Unit Price</th>
-                      <th className="px-3 py-2 text-right">Line Total</th>
+        <Card title="Synced ERP BOM / Line Summary (Read-Only)" right={<Tag tone="neutral">ERP System of Record</Tag>}>
+          <p className="mb-3 text-[12.5px] text-[#516f90]">
+            Per AMICO&rsquo;s 101 Quoting Decision Tree, {eq.division} quotes originate in {eq.sourceSystem} and sync into HubSpot so sales and leadership see live status, PO numbers, and totals on the Customer &amp; Deal record.
+          </p>
+          {dealLines.length > 0 ? (
+            <div className="hs-grid-wrap">
+              <table className="hs-grid" data-testid="epicor-line-items">
+                <thead>
+                  <tr>
+                    <th>Part / SKU</th>
+                    <th>Description</th>
+                    <th className="!text-right">Qty</th>
+                    <th className="!text-right">Unit Price</th>
+                    <th className="!text-right">Line Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dealLines.map((line, idx) => (
+                    <tr key={idx}>
+                      <td className="font-mono text-[12px] font-semibold">{line.sku}</td>
+                      <td>{line.name}</td>
+                      <td className="text-right tabular-nums">{line.qty}</td>
+                      <td className="text-right tabular-nums">{money2(line.unitPrice)}</td>
+                      <td className="text-right font-semibold tabular-nums">{money2(line.qty * line.unitPrice)}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {dealLines.map((line, idx) => (
-                      <tr key={idx} className="border-b border-line-soft last:border-b-0">
-                        <td className="px-3 py-2.5 font-mono text-[12px] font-semibold">{line.sku}</td>
-                        <td className="px-3 py-2.5">{line.name}</td>
-                        <td className="px-3 py-2.5 text-right tabular-nums">{line.qty}</td>
-                        <td className="px-3 py-2.5 text-right tabular-nums">{money2(line.unitPrice)}</td>
-                        <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{money2(line.qty * line.unitPrice)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="rounded-[4px] border border-[#dfe3eb] bg-[#f5f8fa] p-4 text-[13px]">
+              <div className="flex items-center justify-between font-semibold text-[#33475b]">
+                <span>{eq.title}</span>
+                <span className="tabular-nums">{money2(eq.total)}</span>
               </div>
-            ) : (
-              <div className="rounded-[8px] border border-line-soft bg-[#fafafa] p-4 text-[13px]">
-                <div className="flex items-center justify-between font-semibold">
-                  <span>{eq.title}</span>
-                  <span className="tabular-nums">{money2(eq.total)}</span>
-                </div>
-                <p className="mt-1 text-[12px] text-ink-muted">Customer Ref / PO: {eq.customerPo || "Pending PO"}</p>
-              </div>
-            )}
-          </Card>
+              <p className="mt-1 text-[12px] text-[#516f90]">Customer Ref / PO: {eq.customerPo || "Pending PO"}</p>
+            </div>
+          )}
+        </Card>
+      </section>
+
+      {/* RIGHT SIDEBAR */}
+      <aside className="hs-record-right hs-scroll divide-y divide-[#dfe3eb]">
+        <div className="p-4">
+          <p className="text-[13px] font-bold text-[#33475b]">Deals ({deal ? 1 : 0})</p>
+          {deal ? (
+            <div className="mt-2 rounded-[4px] border border-[#dfe3eb] p-2.5 text-[12.5px]">
+              <A to={`/deals/${deal.id}`} className="hs-link" data-testid="epicor-assoc-deal">
+                {deal.name}
+              </A>
+              <p className="mt-0.5 text-[11.5px] text-[#516f90]">
+                Stage: {deal.stage} · {money2(deal.amount)}
+              </p>
+            </div>
+          ) : null}
         </div>
 
-        <div className="space-y-4">
-          <Card title="Associated Deal">
-            {deal ? (
-              <div className="rounded-[8px] border border-line-soft p-3 text-[13px]">
-                <A to={`/deals/${deal.id}`} className="hs-link font-semibold" data-testid="epicor-assoc-deal">
-                  {deal.name}
-                </A>
-                <p className="mt-1 text-[12px] text-ink-muted">
-                  Stage: {deal.stage} · {money2(deal.amount)}
-                </p>
-              </div>
-            ) : (
-              <p className="text-[13px] text-ink-muted">No deal linked.</p>
-            )}
-          </Card>
-
-          <Card title="Associated Company">
-            {company ? (
-              <div className="rounded-[8px] border border-line-soft p-3 text-[13px]">
-                <A to={`/companies/${company.id}`} className="hs-link font-semibold">
+        <div className="p-4">
+          <p className="text-[13px] font-bold text-[#33475b]">Companies ({company ? 1 : 0})</p>
+          {company ? (
+            <div className="mt-2 rounded-[4px] border border-[#dfe3eb] p-2.5 text-[12.5px]">
+              <div className="flex items-center justify-between">
+                <A to={`/companies/${company.id}`} className="hs-link">
                   {company.name}
                 </A>
-                <p className="mt-1 text-[12px] text-ink-muted">{company.crossDivision?.primaryDivision ?? company.industry}</p>
+                <Tag tone="blue">Primary</Tag>
               </div>
-            ) : (
-              <p className="text-[13px] text-ink-muted">No company linked.</p>
-            )}
-          </Card>
-
-          <Card title="Quote Recipient">
-            {contact ? (
-              <div className="rounded-[8px] border border-line-soft p-3 text-[13px]">
-                <A to={`/contacts/${contact.id}`} className="hs-link font-semibold">
-                  {contact.firstName} {contact.lastName}
-                </A>
-                <p className="mt-0.5 text-[12px] text-ink-muted">{contact.email}</p>
-              </div>
-            ) : (
-              <p className="text-[13px] text-ink-muted">No contact linked.</p>
-            )}
-          </Card>
+              <p className="mt-0.5 text-[11.5px] text-[#516f90]">{company.crossDivision?.primaryDivision ?? company.industry}</p>
+            </div>
+          ) : null}
         </div>
-      </div>
+
+        <div className="p-4">
+          <p className="text-[13px] font-bold text-[#33475b]">Contacts ({contact ? 1 : 0})</p>
+          {contact ? (
+            <div className="mt-2 rounded-[4px] border border-[#dfe3eb] p-2.5 text-[12.5px]">
+              <A to={`/contacts/${contact.id}`} className="hs-link">
+                {contact.firstName} {contact.lastName}
+              </A>
+              <p className="mt-0.5 text-[11.5px] text-[#516f90]">{contact.email}</p>
+            </div>
+          ) : null}
+        </div>
+      </aside>
     </div>
   );
 }

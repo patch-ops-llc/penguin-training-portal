@@ -116,7 +116,7 @@ export const AMICO_SECURITY_FENCE_SCRIPTS: Record<string, TrainingScript> = {
       {
         id: "ingest-rev1",
         title: "Push Estimating Workbook Quote Rev 1 via Quote Ingestion Tool",
-        hint: "On IronPeak Deal, click 'Ingest Workbook Rev 1 ($468,000)' in the Estimating & Quote Ingestion card.",
+        hint: "On IronPeak Deal, click 'Ingest Rev 1 ($468,000)' in the right-sidebar Epicor & Quote Ingestion card.",
         path: () => "/deals/dl-ironpeak-perim",
         done: (c) => has(c, "wb.dl-ironpeak-perim.wb-rev1"),
         script: (_c, now) => [
@@ -127,7 +127,7 @@ export const AMICO_SECURITY_FENCE_SCRIPTS: Record<string, TrainingScript> = {
       {
         id: "tag-quote-recipient",
         title: "Tag bidding GC contact with 'Quote Recipient' label",
-        hint: "Click '+ Quote Recipient' on Marcus Hale in the Deal's Contacts card (replacing legacy Quote to #1-#6 fields).",
+        hint: "Click '+ Role label' on Marcus Hale in the right-sidebar Contacts card and select 'Quote Recipient'.",
         path: () => "/deals/dl-ironpeak-perim",
         done: (c) => Boolean(c.w.deals.find((d) => d.id === "dl-ironpeak-perim")?.contactLabels?.["ct-marcus-hale"]?.includes("Quote Recipient")),
         script: () => [{ t: "deal.addContactLabel", dealId: "dl-ironpeak-perim", contactId: "ct-marcus-hale", label: "Quote Recipient" }],
@@ -135,7 +135,7 @@ export const AMICO_SECURITY_FENCE_SCRIPTS: Record<string, TrainingScript> = {
       {
         id: "ingest-rev2",
         title: "Ingest Scope Add-On Revision (Rev 2 — $485,000) onto the SAME Deal",
-        hint: "Click 'Ingest Workbook Rev 2 ($485,000)' so revision history stays on one single Deal.",
+        hint: "Click 'Ingest Rev 2 ($485,000)' in the right-sidebar Epicor & Quote Ingestion card so revision history stays on one Deal.",
         path: () => "/deals/dl-ironpeak-perim",
         done: (c) => has(c, "wb.dl-ironpeak-perim.wb-rev2"),
         script: (_c, now) => [{ t: "deal.ingestWorkbookQuote", dealId: "dl-ironpeak-perim", presetId: "wb-rev2", at: now }],

@@ -5,10 +5,10 @@ import { nowMs } from "@/lib/format";
 import { useSeen, useShell } from "@/store/store";
 import type { Company, Contact, Deal, DealStage, Product, Quote, Task, Workflow } from "@/tenants/types";
 import { Ext } from "../ext";
-import { date, money, money2 } from "../format";
+import { date, money, money2, shortDate } from "../format";
 import { Icon } from "../icons";
-import { A, Avatar, Button, cx, Menu, MenuItem, Modal, Prop, statusTone, Tag } from "../ui";
-import { IndexPage, PreviewShell, type Column, type Filter, type View } from "./index-table";
+import { A, Avatar, Button, Card, colorFor, cx, Drawer, Menu, MenuItem, Modal, statusTone, Tag } from "../ui";
+import { IndexPage, type Column, type Filter, type View } from "./index-table";
 import { StagePromptModal } from "./stage-prompt-modal";
 
 /* ─────────────────────────── CONTACTS INDEX ─────────────────────────── */
@@ -22,6 +22,14 @@ export function ContactsIndex() {
   const [title, setTitle] = useState("");
   const [companyId, setCompanyId] = useState(world.companies[0]?.id ?? "");
 
+  const isCreateOpen = createOpen || world.ui.quickCreate === "contact";
+  const closeCreate = () => {
+    setCreateOpen(false);
+    if (world.ui.quickCreate === "contact") {
+      dispatch({ t: "ui", k: "quickCreate", v: "" });
+    }
+  };
+
   const normalizedInput = email.trim().toLowerCase();
   const duplicateContact = normalizedInput
     ? world.contacts.find((c) => c.email.toLowerCase() === normalizedInput)
@@ -30,6 +38,22 @@ export function ContactsIndex() {
   const views: View<Contact>[] = [
     { id: "all", label: "All contacts", filter: () => true },
     { id: "mine", label: "My contacts", filter: (c) => c.ownerId === persona.id },
+    { id: "customers", label: "Active customers", filter: (c) => c.lifecycle === "Customer" || c.lifecycle === "Opportunity" },
+  ];
+
+  const filters: Filter<Contact>[] = [
+    {
+      id: "owner",
+      label: "Contact owner",
+      options: pack.personas.map((p) => ({ value: p.id, label: p.name })),
+      test: (c, v) => c.ownerId === v,
+    },
+    {
+      id: "lifecycle",
+      label: "Lifecycle stage",
+      options: ["Lead", "Marketing Qualified Lead", "Sales Qualified Lead", "Opportunity", "Customer"].map((v) => ({ value: v, label: v })),
+      test: (c, v) => c.lifecycle === v,
+    },
   ];
 
   const columns: Column<Contact>[] = [
@@ -38,12 +62,16 @@ export function ContactsIndex() {
       label: "Name",
       sort: (c) => `${c.firstName} ${c.lastName}`,
       cell: (c) => (
-        <A to={`/contacts/${c.id}`} className="hs-link font-semibold" data-testid={`contact-link-${c.id}`}>
-          {c.firstName} {c.lastName}
-        </A>
+        <div className="flex items-center gap-2.5">
+          <Avatar name={`${c.firstName} ${c.lastName}`} color={colorFor(c.id)} size={24} />
+          <A to={`/contacts/${c.id}`} className="hs-link" data-testid={`contact-link-${c.id}`}>
+            {c.firstName} {c.lastName}
+          </A>
+        </div>
       ),
     },
-    { id: "email", label: "Email (Unique Key)", cell: (c) => c.email },
+    { id: "email", label: "Email", cell: (c) => <span className="text-[#0091ae]">{c.email}</span> },
+    { id: "phone", label: "Phone Number", cell: (c) => c.phone || "—" },
     { id: "title", label: "Job Title", cell: (c) => c.title },
     {
       id: "company",
@@ -59,11 +87,21 @@ export function ContactsIndex() {
         );
       },
     },
-    { id: "status", label: "Lead Status", cell: (c) => c.leadStatus },
+    { id: "status", label: "Lead Status", cell: (c) => <Tag tone={statusTone(c.leadStatus)}>{c.leadStatus}</Tag> },
     {
       id: "owner",
       label: "Contact Owner",
-      cell: (c) => pack.personas.find((p) => p.id === c.ownerId)?.name ?? c.ownerId ?? "—",
+      cell: (c) => {
+        const p = pack.personas.find((x) => x.id === c.ownerId);
+        return p ? (
+          <span className="inline-flex items-center gap-1.5">
+            <Avatar name={p.name} color={p.color} size={20} />
+            <span>{p.name}</span>
+          </span>
+        ) : (
+          c.ownerId ?? "—"
+        );
+      },
     },
     { id: "stage", label: "Lifecycle Stage", cell: (c) => <Tag>{c.lifecycle}</Tag> },
   ];
@@ -72,37 +110,40 @@ export function ContactsIndex() {
     <>
       <IndexPage
         title="Contacts"
+        objectSwitcherLabel="Contacts"
         noun="contact"
         rows={world.contacts}
         columns={columns}
         views={views}
+        filters={filters}
         rowKey={(c) => c.id}
+        isNew={(c) => Boolean(c.isNew)}
         searchText={(c) => `${c.firstName} ${c.lastName} ${c.email} ${c.phone} ${c.title}`}
-        toolbar={
-          <Button variant="primary" icon="plus" onClick={() => setCreateOpen(true)} data-testid="add-contact-btn">
-            Add contact
-          </Button>
+        onPreviewRow={(c) => dispatch({ t: "ui", k: "preview", v: `contact:${c.id}` })}
+        headerActions={
+          <>
+            <Button size="sm" icon="upload">
+              Import
+            </Button>
+            <Button size="sm" icon="columns">
+              Edit columns
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)} data-testid="add-contact-btn">
+              Create contact
+            </Button>
+          </>
         }
-        preview={(c, close) => (
-          <PreviewShell title={`${c.firstName} ${c.lastName}`} subtitle={`${c.title} · ${c.email}`} to={`/contacts/${c.id}`} onClose={close}>
-            <dl>
-              <Prop label="Email">{c.email}</Prop>
-              <Prop label="Phone">{c.phone}</Prop>
-              <Prop label="Lead status">{c.leadStatus}</Prop>
-              <Prop label="Lifecycle stage">{c.lifecycle}</Prop>
-            </dl>
-          </PreviewShell>
-        )}
       />
 
-      {createOpen ? (
-        <Modal
+      {/* Authentic Right-Side HubSpot Create Contact Drawer */}
+      {isCreateOpen ? (
+        <Drawer
           title="Create Contact"
-          onClose={() => setCreateOpen(false)}
+          subtitle="Contacts are deduplicated globally by Email across all AMICO divisions"
+          onClose={closeCreate}
           testId="create-contact-modal"
           footer={
             <>
-              <Button onClick={() => setCreateOpen(false)}>Cancel</Button>
               <Button
                 variant="primary"
                 disabled={!email.trim() || !firstName.trim() || Boolean(duplicateContact)}
@@ -118,20 +159,21 @@ export function ContactsIndex() {
                     companyId: companyId || null,
                     at: nowMs(),
                   });
-                  setCreateOpen(false);
+                  closeCreate();
                   setFirstName("");
                   setLastName("");
                   setEmail("");
                 }}
               >
-                Create contact
+                Create
               </Button>
+              <Button onClick={closeCreate}>Cancel</Button>
             </>
           }
         >
-          <div className="space-y-3.5 text-[13.5px]">
+          <div className="space-y-4 text-[13px]">
             <label className="block space-y-1">
-              <span className="font-semibold">Email * (Unique key across HubSpot)</span>
+              <span className="font-medium text-[#516f90]">Email *</span>
               <input
                 type="email"
                 value={email}
@@ -143,98 +185,94 @@ export function ContactsIndex() {
                     dispatch({ t: "contact.duplicateChecked", email: val.trim() });
                   }
                 }}
-                placeholder="m.mercer@gradingpacific.example"
+                placeholder="elena.rostova@gradingpacific.example"
                 data-testid="contact-email-input"
-                className="h-9 w-full rounded-[6px] border border-line px-3"
+                className="hs-input w-full"
               />
             </label>
 
             {duplicateContact ? (
               <div
-                className="rounded-[8px] border border-[#fdefc8] bg-[#fff9ec] p-3 text-[13px] text-[#754c00]"
+                className="rounded-[4px] border border-[#f5c26b] bg-[#fef6e7] p-3.5 text-[12.5px] text-[#8a5300]"
                 data-testid="duplicate-email-banner"
               >
                 <p className="font-semibold">
-                  A contact with email {duplicateContact.email} already exists ({duplicateContact.firstName} {duplicateContact.lastName}).
+                  {duplicateContact.email} already belongs to {duplicateContact.firstName} {duplicateContact.lastName}.
                 </p>
                 <p className="mt-1 text-[12px]">
-                  HubSpot enforces unique email addresses on Contacts so divisions never create split timelines.
+                  HubSpot enforces unique email addresses on Contacts so divisions share one unified contact record.
                 </p>
                 <button
                   type="button"
                   data-testid="open-existing-contact-btn"
                   onClick={() => {
                     dispatch({ t: "contact.duplicateChecked", email: duplicateContact.email });
-                    setCreateOpen(false);
+                    closeCreate();
                     navigate(`/contacts/${duplicateContact.id}`);
                   }}
-                  className="mt-2 font-semibold text-link underline"
+                  className="mt-2 font-semibold text-[#0091ae] hover:underline"
                 >
-                  Open existing contact ({duplicateContact.firstName} {duplicateContact.lastName}) →
+                  View existing contact ({duplicateContact.firstName} {duplicateContact.lastName}) →
                 </button>
               </div>
             ) : null}
 
             <div className="grid grid-cols-2 gap-3">
               <label className="block space-y-1">
-                <span className="font-semibold">First name *</span>
+                <span className="font-medium text-[#516f90]">First name *</span>
                 <input
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   data-testid="contact-first-name"
-                  className="h-9 w-full rounded-[6px] border border-line px-3"
+                  className="hs-input w-full"
                 />
               </label>
               <label className="block space-y-1">
-                <span className="font-semibold">Last name</span>
+                <span className="font-medium text-[#516f90]">Last name</span>
                 <input
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   data-testid="contact-last-name"
-                  className="h-9 w-full rounded-[6px] border border-line px-3"
-                />
-              </label>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block space-y-1">
-                <span className="font-semibold">Job title</span>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="h-9 w-full rounded-[6px] border border-line px-3"
-                />
-              </label>
-              <label className="block space-y-1">
-                <span className="font-semibold">Phone</span>
-                <input
-                  type="text"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="h-9 w-full rounded-[6px] border border-line px-3"
+                  className="hs-input w-full"
                 />
               </label>
             </div>
 
             <label className="block space-y-1">
-              <span className="font-semibold">Associated Company</span>
-              <select
-                value={companyId}
-                onChange={(e) => setCompanyId(e.target.value)}
-                className="h-9 w-full rounded-[6px] border border-line bg-white px-3"
-              >
-                {world.companies.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.crossDivision?.primaryDivision ?? c.industry})
-                  </option>
-                ))}
-              </select>
+              <span className="font-medium text-[#516f90]">Contact owner</span>
+              <input readOnly value={persona.name} className="hs-input w-full !bg-[#eaf0f6]" />
             </label>
+
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block space-y-1">
+                <span className="font-medium text-[#516f90]">Job title</span>
+                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="hs-input w-full" />
+              </label>
+              <label className="block space-y-1">
+                <span className="font-medium text-[#516f90]">Phone number</span>
+                <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} className="hs-input w-full" />
+              </label>
+            </div>
+
+            <div className="border-t border-[#dfe3eb] pt-4">
+              <p className="mb-2 text-[12px] font-bold uppercase tracking-wider text-[#516f90]">
+                Associate Contact with
+              </p>
+              <label className="block space-y-1">
+                <span className="font-medium text-[#516f90]">Company</span>
+                <select value={companyId} onChange={(e) => setCompanyId(e.target.value)} className="hs-input w-full">
+                  {world.companies.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.crossDivision?.primaryDivision ?? c.industry})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
           </div>
-        </Modal>
+        </Drawer>
       ) : null}
     </>
   );
@@ -242,7 +280,21 @@ export function ContactsIndex() {
 
 /* ─────────────────────────── COMPANIES INDEX ─────────────────────────── */
 export function CompaniesIndex() {
-  const { pack, world, persona } = useShell();
+  const { pack, world, persona, dispatch, navigate } = useShell();
+  const [createInfoOpen, setCreateInfoOpen] = useState(false);
+  const [domainLookup, setDomainLookup] = useState("");
+
+  const matchedCompany = domainLookup.trim()
+    ? world.companies.find(
+        (c) =>
+          c.domain.toLowerCase().includes(domainLookup.trim().toLowerCase()) ||
+          c.name.toLowerCase().includes(domainLookup.trim().toLowerCase()),
+      )
+    : undefined;
+
+  const divisions = Array.from(
+    new Set(world.companies.map((c) => c.crossDivision?.primaryDivision).filter(Boolean) as string[]),
+  );
 
   const views: View<Company>[] = [
     { id: "all", label: "All companies", filter: () => true },
@@ -253,8 +305,28 @@ export function CompaniesIndex() {
     },
     {
       id: "multi",
-      label: "Multi-division accounts",
+      label: "Cross-Division",
       filter: (c) => (c.crossDivision?.divisionsActive.length ?? 0) > 1,
+    },
+    {
+      id: "duplicates",
+      label: "Missing Domain / Review",
+      filter: (c) => !c.domain || Boolean(c.missingDomainDuplicateOf),
+    },
+  ];
+
+  const filters: Filter<Company>[] = [
+    {
+      id: "owner",
+      label: "Company owner",
+      options: pack.personas.map((p) => ({ value: p.id, label: p.name })),
+      test: (c, v) => c.ownerId === v,
+    },
+    {
+      id: "division",
+      label: "Division",
+      options: divisions.map((d) => ({ value: d, label: d })),
+      test: (c, v) => c.crossDivision?.primaryDivision === v || Boolean(c.crossDivision?.divisionsActive.includes(v)),
     },
   ];
 
@@ -265,7 +337,8 @@ export function CompaniesIndex() {
       sort: (c) => c.name,
       cell: (c) => (
         <div className="flex flex-wrap items-center gap-2">
-          <A to={`/companies/${c.id}`} className="hs-link font-semibold" data-testid={`company-link-${c.id}`}>
+          <Avatar name={c.name} color={colorFor(c.id)} size={24} />
+          <A to={`/companies/${c.id}`} className="hs-link" data-testid={`company-link-${c.id}`}>
             {c.name}
           </A>
           {c.parentCompanyId ? <Tag tone="blue">Child Branch</Tag> : null}
@@ -274,55 +347,135 @@ export function CompaniesIndex() {
         </div>
       ),
     },
-    { id: "domain", label: "Company Domain", cell: (c) => c.domain || <span className="text-[#99201a]">Missing domain</span> },
-    { id: "division", label: "Primary Division", cell: (c) => c.crossDivision?.primaryDivision ?? "—" },
+    {
+      id: "domain",
+      label: "Company Domain Name",
+      cell: (c) =>
+        c.domain ? (
+          <span className="font-mono text-[12px] text-[#516f90]">{c.domain}</span>
+        ) : (
+          <Tag tone="red">Missing domain</Tag>
+        ),
+    },
+    {
+      id: "division",
+      label: "Primary Division",
+      cell: (c) => <Tag tone="neutral">{c.crossDivision?.primaryDivision ?? "—"}</Tag>,
+    },
     {
       id: "cross",
-      label: "Divisions Active",
+      label: "Cross-Division Penetration",
       cell: (c) =>
         c.crossDivision && c.crossDivision.divisionsActive.length > 1 ? (
-          <Tag tone="purple">{c.crossDivision.divisionsActive.length} divisions</Tag>
+          <Tag tone="purple">{c.crossDivision.divisionsActive.length} AMICO divisions</Tag>
         ) : (
-          "1 division"
+          <span className="text-[#516f90]">1 division</span>
         ),
     },
     {
       id: "owner",
-      label: "Account Owner",
-      cell: (c) => pack.personas.find((p) => p.id === c.ownerId)?.name ?? c.ownerId ?? "—",
+      label: "Company Owner",
+      cell: (c) => {
+        const p = pack.personas.find((x) => x.id === c.ownerId);
+        return p ? (
+          <span className="inline-flex items-center gap-1.5">
+            <Avatar name={p.name} color={p.color} size={20} />
+            <span>{p.name}</span>
+          </span>
+        ) : (
+          c.ownerId ?? "—"
+        );
+      },
     },
-    { id: "city", label: "Location", cell: (c) => `${c.city}, ${c.state}` },
+    { id: "city", label: "City / State", cell: (c) => `${c.city}, ${c.state}` },
     {
       id: "erp",
-      label: "ERP Account",
-      cell: (c) => (c.erp ? `${c.erp.systemName ?? "ERP"} · ${c.erp.accountNumber}` : "—"),
+      label: "Epicor Customer ID",
+      cell: (c) =>
+        c.erp ? (
+          <span className="font-mono text-[12px] font-semibold text-[#33475b]">{c.erp.accountNumber}</span>
+        ) : (
+          "—"
+        ),
     },
   ];
 
   return (
-    <IndexPage
-      title="Companies"
-      noun="company"
-      rows={world.companies}
-      columns={columns}
-      views={views}
-      rowKey={(c) => c.id}
-      searchText={(c) => `${c.name} ${c.domain} ${c.crossDivision?.primaryDivision ?? ""} ${c.city} ${c.erp?.accountNumber ?? ""}`}
-      preview={(c, close) => (
-        <PreviewShell title={c.name} subtitle={`${c.crossDivision?.primaryDivision ?? c.industry} · ${c.city}, ${c.state}`} to={`/companies/${c.id}`} onClose={close}>
-          <dl>
-            <Prop label="Domain">{c.domain || "None (Suspected ERP duplicate)"}</Prop>
-            <Prop label="Industry">{c.industry}</Prop>
-            <Prop label="Active divisions">{c.crossDivision?.divisionsActive.join(", ") || "—"}</Prop>
-            <Prop label="ERP Account">{c.erp?.accountNumber ?? "—"}</Prop>
-          </dl>
-        </PreviewShell>
-      )}
-    />
+    <>
+      <IndexPage
+        title="Companies"
+        objectSwitcherLabel="Companies"
+        noun="company"
+        rows={world.companies}
+        columns={columns}
+        views={views}
+        filters={filters}
+        rowKey={(c) => c.id}
+        searchText={(c) => `${c.name} ${c.domain} ${c.crossDivision?.primaryDivision ?? ""} ${c.city} ${c.erp?.accountNumber ?? ""}`}
+        onPreviewRow={(c) => dispatch({ t: "ui", k: "preview", v: `company:${c.id}` })}
+        headerActions={
+          <>
+            <Button size="sm" icon="upload">
+              Import
+            </Button>
+            <Button size="sm" icon="columns">
+              Edit columns
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => setCreateInfoOpen(true)} data-testid="create-company-btn">
+              Create company
+            </Button>
+          </>
+        }
+      />
+
+      {createInfoOpen ? (
+        <Drawer
+          title="Create Company"
+          subtitle="HubSpot deduplicates Companies by Company Domain Name across all 9 AMICO divisions"
+          onClose={() => setCreateInfoOpen(false)}
+          testId="create-company-drawer"
+          footer={<Button onClick={() => setCreateInfoOpen(false)}>Close</Button>}
+        >
+          <div className="space-y-4 text-[13px]">
+            <label className="block space-y-1">
+              <span className="font-medium text-[#516f90]">Company domain name *</span>
+              <input
+                value={domainLookup}
+                onChange={(e) => setDomainLookup(e.target.value)}
+                placeholder="gradingpacific.com"
+                className="hs-input w-full"
+              />
+            </label>
+            {matchedCompany ? (
+              <div className="rounded-[4px] border border-[#99d6e2] bg-[#e5f5f8] p-3.5 text-[#00677d]">
+                <p className="font-semibold">{matchedCompany.name} already exists in HubSpot!</p>
+                <p className="mt-1 text-[12px]">
+                  Primary division: {matchedCompany.crossDivision?.primaryDivision ?? matchedCompany.industry}. Open the shared Company record instead of creating a duplicate.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCreateInfoOpen(false);
+                    navigate(`/companies/${matchedCompany.id}`);
+                  }}
+                  className="mt-2 font-semibold text-[#0091ae] underline"
+                >
+                  Open {matchedCompany.name} →
+                </button>
+              </div>
+            ) : (
+              <p className="rounded-[4px] border border-[#dfe3eb] bg-[#f5f8fa] p-3 text-[12.5px] text-[#516f90]">
+                AMICO Governance Rule: Search by Company name or domain first. Most customer and GC accounts were migrated from Epicor &amp; Pipedrive.
+              </p>
+            )}
+          </div>
+        </Drawer>
+      ) : null}
+    </>
   );
 }
 
-/* ─────────────────────────── DEALS INDEX (MULTI-PIPELINE + BOARD) ─────────────────────────── */
+/* ─────────────────────────── DEALS INDEX (SAVED VIEWS + KANBAN BOARD) ─────────────────────────── */
 export function DealsIndex() {
   const { pack, world, persona, dispatch, navigate } = useShell();
   const selectedPipelineId = world.ui["deals.pipeline"] || pack.pipelines[0]?.id || "security-fence";
@@ -330,6 +483,9 @@ export function DealsIndex() {
   const activeViewId = world.ui["deals.view"] || "all";
 
   const [pendingStageMove, setPendingStageMove] = useState<{ deal: Deal; targetStage: DealStage } | null>(null);
+  const [dragDealId, setDragDealId] = useState<string | null>(null);
+  const [dragOverStage, setDragOverStage] = useState<string | null>(null);
+
   const [addViewOpen, setAddViewOpen] = useState(false);
   const [viewLabel, setViewLabel] = useState("My Open Bids Due This Month");
   const [viewVisibility, setViewVisibility] = useState<"Private" | "Team">("Private");
@@ -343,6 +499,14 @@ export function DealsIndex() {
   const [dealCompanyId, setDealCompanyId] = useState(world.companies[0]?.id ?? "");
   const [dealCompanyRole, setDealCompanyRole] = useState("General Contractor");
 
+  const isAddDealOpen = addDealOpen || world.ui.quickCreate === "deal";
+  const closeAddDeal = () => {
+    setAddDealOpen(false);
+    if (world.ui.quickCreate === "deal") {
+      dispatch({ t: "ui", k: "quickCreate", v: "" });
+    }
+  };
+
   const activePipeline = pack.pipelines.find((p) => p.id === selectedPipelineId);
   const isGlobalReadOnly = activePipeline?.readOnly === true;
 
@@ -352,7 +516,7 @@ export function DealsIndex() {
       : world.deals.filter((d) => d.pipelineId === selectedPipelineId);
 
   const views: View<Deal>[] = [
-    { id: "all", label: "All deals", filter: () => true },
+    { id: "all", label: "All deals", filter: () => true, closable: false },
     {
       id: "mine",
       label: "My deals",
@@ -361,6 +525,16 @@ export function DealsIndex() {
         d.outsideSalesOwnerId === persona.id ||
         d.insideSalesOwnerId === persona.id ||
         d.estimatorOwnerId === persona.id,
+    },
+    {
+      id: "stuck",
+      label: "Stuck > 14 Days",
+      filter: (d) => (d.daysInStage ?? 0) >= 14,
+    },
+    {
+      id: "cross-div",
+      label: "Cross-Division",
+      filter: (d) => Boolean(d.dealLinks && d.dealLinks.length > 0) || Boolean(d.sourceDivision),
     },
     ...world.savedDealViews.map((sv) => ({
       id: sv.id,
@@ -379,17 +553,25 @@ export function DealsIndex() {
     })),
   ];
 
+  const dealDivisions = Array.from(new Set(world.deals.map((d) => d.division)));
+
   const filters: Filter<Deal>[] = [
     {
       id: "owner",
-      label: "Deal Owner",
+      label: "Deal owner",
       options: pack.personas.map((p) => ({ value: p.id, label: p.name })),
       test: (d, v) => d.ownerId === v || d.outsideSalesOwnerId === v || d.insideSalesOwnerId === v,
+    },
+    {
+      id: "division",
+      label: "Division",
+      options: dealDivisions.map((dv) => ({ value: dv, label: dv })),
+      test: (d, v) => d.division === v,
     },
   ];
 
   function requestStageMove(deal: Deal, targetStageId: string) {
-    if (deal.readOnly || deal.pipelineId === "global") return;
+    if (deal.readOnly || deal.pipelineId === "global" || deal.stage === targetStageId) return;
     const pl = pack.pipelines.find((p) => p.id === deal.pipelineId);
     const st = pl?.stages.find((s) => s.id === targetStageId);
     if (!st) return;
@@ -407,17 +589,13 @@ export function DealsIndex() {
       sort: (d) => d.name,
       cell: (d) => (
         <div className="flex flex-wrap items-center gap-2">
-          <A to={`/deals/${d.id}`} className="hs-link font-semibold" data-testid={`deal-link-${d.id}`}>
+          <A to={`/deals/${d.id}`} className="hs-link" data-testid={`deal-link-${d.id}`}>
             {d.name}
           </A>
           {d.readOnly ? <Tag tone="amber">Read-Only Shadow</Tag> : null}
+          {(d.daysInStage ?? 0) >= 14 ? <Tag tone="red">{d.daysInStage}d in stage</Tag> : null}
         </div>
       ),
-    },
-    {
-      id: "pipeline",
-      label: "Pipeline",
-      cell: (d) => pack.pipelines.find((p) => p.id === d.pipelineId)?.name ?? d.division,
     },
     {
       id: "stage",
@@ -428,9 +606,36 @@ export function DealsIndex() {
         return <Tag tone={statusTone(label)}>{label}</Tag>;
       },
     },
+    { id: "close", label: "Close Date", sort: (d) => d.closeDate, cell: (d) => shortDate(d.closeDate) },
+    {
+      id: "owners",
+      label: "Deal Owner",
+      cell: (d) => {
+        const ids = [...new Set([d.ownerId, d.outsideSalesOwnerId, d.insideSalesOwnerId, d.estimatorOwnerId].filter(Boolean) as string[])];
+        const primary = pack.personas.find((x) => x.id === ids[0]);
+        return (
+          <div className="flex items-center gap-1.5">
+            <div className="flex -space-x-1">
+              {ids.map((oid) => {
+                const p = pack.personas.find((x) => x.id === oid);
+                return p ? <Avatar key={oid} name={p.name} color={p.color} size={21} /> : null;
+              })}
+            </div>
+            {primary ? <span className="truncate text-[12.5px]">{primary.name}</span> : null}
+          </div>
+        );
+      },
+    },
+    {
+      id: "amount",
+      label: "Amount",
+      align: "right",
+      sort: (d) => d.amount,
+      cell: (d) => <span className="font-semibold">{money(d.amount)}</span>,
+    },
     {
       id: "company",
-      label: "Primary Company",
+      label: "Associated Company",
       cell: (d) => {
         const co = world.companies.find((c) => c.id === d.companyId);
         return co ? (
@@ -443,53 +648,17 @@ export function DealsIndex() {
       },
     },
     {
-      id: "owners",
-      label: "Deal Team",
-      cell: (d) => {
-        const ids = [...new Set([d.ownerId, d.outsideSalesOwnerId, d.insideSalesOwnerId, d.estimatorOwnerId].filter(Boolean) as string[])];
-        return (
-          <div className="flex items-center gap-1">
-            {ids.map((oid) => {
-              const p = pack.personas.find((x) => x.id === oid);
-              return p ? <Avatar key={oid} name={p.name} color={p.color} size={22} /> : null;
-            })}
-          </div>
-        );
-      },
+      id: "division",
+      label: "Division",
+      cell: (d) => <Tag tone="neutral">{d.division}</Tag>,
     },
-    { id: "close", label: "Close Date", sort: (d) => d.closeDate, cell: (d) => date(d.closeDate) },
-    { id: "amount", label: "Amount", align: "right", sort: (d) => d.amount, cell: (d) => money(d.amount) },
   ];
 
   return (
     <>
       <IndexPage
-        title={
-          <span className="inline-flex flex-wrap items-center gap-3">
-            <span>Deals</span>
-            <Ext id="multi-pipeline-selector">
-              <select
-                value={selectedPipelineId}
-                onChange={(e) => dispatch({ t: "deal.selectPipeline", pipelineId: e.target.value })}
-                aria-label="Select deal pipeline"
-                data-testid="pipeline-selector"
-                className="h-9 rounded-[6px] border border-line bg-white px-3 text-[14px] font-semibold text-ink"
-              >
-                {pack.pipelines.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} {p.readOnly ? "(Read-Only Rollup)" : ""}
-                  </option>
-                ))}
-                <option value="all">All Division Pipelines</option>
-              </select>
-            </Ext>
-            {isGlobalReadOnly ? (
-              <Ext id="global-shadow-pipeline">
-                <Tag tone="amber">Global Shadow Pipeline · Read-Only Executive Rollup</Tag>
-              </Ext>
-            ) : null}
-          </span>
-        }
+        title="Deals"
+        objectSwitcherLabel="Deals"
         noun="deal"
         rows={pipelineFilteredDeals}
         columns={columns}
@@ -501,133 +670,304 @@ export function DealsIndex() {
             type="button"
             onClick={() => setAddViewOpen(true)}
             data-testid="add-view-btn"
-            className="inline-flex h-8 items-center gap-1 rounded-[6px] px-2.5 text-[12.5px] font-semibold text-link hover:bg-[#eef5f5]"
+            className="inline-flex h-7 items-center gap-1 rounded-[3px] px-2.5 text-[12.5px] font-semibold text-[#0091ae] hover:bg-[#e5f5f8]"
           >
             <Icon name="plus" size={13} /> Add view
           </button>
         }
         filters={filters}
         rowKey={(d) => d.id}
+        isNew={(d) => Boolean(d.isNew)}
         searchText={(d) => `${d.name} ${d.division} ${d.customerPo ?? ""} ${d.amicoOrderNumber ?? ""}`}
+        onPreviewRow={(d) => dispatch({ t: "ui", k: "preview", v: `deal:${d.id}` })}
+        headerActions={
+          <>
+            <Button size="sm" icon="upload">
+              Import
+            </Button>
+            <Button size="sm" icon="columns">
+              Edit columns
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={isGlobalReadOnly}
+              onClick={() => setAddDealOpen(true)}
+              data-testid="add-deal-btn"
+            >
+              Create deal
+            </Button>
+          </>
+        }
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex overflow-hidden rounded-[6px] border border-line bg-white">
+            {/* HubSpot List / Board View Icon Toggle */}
+            <div className="inline-flex overflow-hidden rounded-[3px] border border-[#cbd6e2] bg-white">
               <button
                 type="button"
                 onClick={() => dispatch({ t: "deal.setLayout", board: false })}
                 data-testid="layout-table"
-                className={cx("inline-flex h-9 items-center gap-1.5 px-3 text-[13px] font-semibold", !isBoard ? "bg-nav text-white" : "text-ink")}
+                title="List view"
+                className={cx(
+                  "inline-flex h-8 items-center gap-1.5 border-r border-[#cbd6e2] px-2.5 text-[12.5px] font-semibold",
+                  !isBoard ? "bg-[#eaf0f6] text-[#33475b]" : "text-[#516f90] hover:bg-[#f5f8fa]",
+                )}
               >
-                <Icon name="list" size={14} /> Table
+                <Icon name="list" size={14} /> List
               </button>
               <button
                 type="button"
                 onClick={() => dispatch({ t: "deal.setLayout", board: true })}
                 data-testid="layout-board"
-                className={cx("inline-flex h-9 items-center gap-1.5 px-3 text-[13px] font-semibold", isBoard ? "bg-nav text-white" : "text-ink")}
+                title="Board view"
+                className={cx(
+                  "inline-flex h-8 items-center gap-1.5 px-2.5 text-[12.5px] font-semibold",
+                  isBoard ? "bg-[#eaf0f6] text-[#33475b]" : "text-[#516f90] hover:bg-[#f5f8fa]",
+                )}
               >
                 <Icon name="board" size={14} /> Board
               </button>
             </div>
-            <Button
-              variant="primary"
-              icon="plus"
-              disabled={isGlobalReadOnly}
-              onClick={() => setAddDealOpen(true)}
-              data-testid="add-deal-btn"
-            >
-              Add deal
-            </Button>
+
+            {/* HubSpot Pipeline Selector Dropdown right next to List/Board Toggle */}
+            <Ext id="multi-pipeline-selector">
+              <select
+                value={selectedPipelineId}
+                onChange={(e) => dispatch({ t: "deal.selectPipeline", pipelineId: e.target.value })}
+                aria-label="Select deal pipeline"
+                data-testid="pipeline-selector"
+                className="hs-input !h-8 !bg-white font-semibold text-[#0091ae]"
+              >
+                {pack.pipelines.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} {p.readOnly ? "(Read-Only Rollup)" : ""}
+                  </option>
+                ))}
+                <option value="all">All Division Pipelines</option>
+              </select>
+            </Ext>
+
+            {isGlobalReadOnly ? (
+              <Ext id="global-shadow-pipeline">
+                <Tag tone="amber">Global Shadow Pipeline · Read-Only Executive Rollup</Tag>
+              </Ext>
+            ) : null}
           </div>
         }
         alternate={
           isBoard && activePipeline
             ? (visible) => (
-                <div className="hs-scroll flex gap-3 overflow-x-auto p-4" data-testid="deals-board">
+                <div className="hs-scroll flex flex-1 gap-3 overflow-x-auto px-6 py-4" data-testid="deals-board">
                   {activePipeline.stages.map((st) => {
                     const stageDeals = visible.filter((d) => d.stage === st.id);
                     const sum = stageDeals.reduce((acc, d) => acc + d.amount, 0);
+                    const probPct =
+                      st.probability > 0 && st.probability <= 1
+                        ? Math.round(st.probability * 100)
+                        : Math.round(st.probability);
+                    const weighted = Math.round(sum * (probPct / 100));
+                    const isDropTarget = dragOverStage === st.id;
+
                     return (
                       <div
                         key={st.id}
                         data-testid={`board-col-${st.id}`}
-                        className="flex w-[265px] shrink-0 flex-col rounded-[8px] bg-[#f4f5f7] p-2.5"
+                        onDragOver={(e) => {
+                          if (isGlobalReadOnly) return;
+                          e.preventDefault();
+                          if (dragOverStage !== st.id) setDragOverStage(st.id);
+                        }}
+                        onDragLeave={() => {
+                          if (dragOverStage === st.id) setDragOverStage(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDragOverStage(null);
+                          if (!dragDealId || isGlobalReadOnly) return;
+                          const dragged = visible.find((d) => d.id === dragDealId) ?? world.deals.find((d) => d.id === dragDealId);
+                          setDragDealId(null);
+                          if (dragged) requestStageMove(dragged, st.id);
+                        }}
+                        className={cx(
+                          "flex max-h-[calc(100vh-295px)] min-h-[420px] w-[285px] shrink-0 flex-col rounded-[4px] border bg-[#eaf0f6]/65 transition-colors",
+                          isDropTarget ? "border-[#0091ae] bg-[#e5f5f8]" : "border-[#dfe3eb]",
+                        )}
                       >
-                        <div className="mb-2 px-1">
-                          <div className="flex items-center justify-between">
-                            <span className="truncate text-[12.5px] font-semibold">{st.label}</span>
-                            <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold">{stageDeals.length}</span>
+                        {/* Stage Column Header + Probability Bar */}
+                        <div className="border-b border-[#dfe3eb] bg-white px-3 pb-2.5 pt-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate text-[13px] font-semibold text-[#33475b]">{st.label}</span>
+                            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#eaf0f6] px-1.5 text-[11px] font-bold text-[#516f90]">
+                              {stageDeals.length}
+                            </span>
                           </div>
-                          <div className="mt-0.5 text-[11.5px] text-ink-muted tabular-nums">
-                            {money(sum)} · {Math.round(st.probability * 100)}%
+                          <div className="mt-2 flex items-center gap-2">
+                            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#eaf0f6]">
+                              <div
+                                className={cx(
+                                  "h-full rounded-full",
+                                  st.closed === "lost" ? "bg-[#f2545b]" : st.wonRevenue || st.closed === "won" ? "bg-[#00bda5]" : "bg-[#0091ae]",
+                                )}
+                                style={{ width: `${Math.max(probPct, st.closed === "lost" ? 100 : 8)}%` }}
+                              />
+                            </div>
+                            <span className="text-[10.5px] font-semibold tabular-nums text-[#516f90]">{probPct}%</span>
                           </div>
                         </div>
 
-                        <div className="space-y-2.5">
+                        {/* Scrollable Cards List */}
+                        <div className="hs-scroll flex-1 space-y-2.5 overflow-y-auto p-2.5">
                           {stageDeals.map((d) => {
                             const company = world.companies.find((c) => c.id === d.companyId);
+                            const primaryContact = world.contacts.find((c) => d.contactIds.includes(c.id));
+                            const nextTask = world.tasks.find((t) => t.dealId === d.id && t.status === "open");
                             const ownerIds = [
                               ...new Set([d.ownerId, d.outsideSalesOwnerId, d.insideSalesOwnerId, d.estimatorOwnerId].filter(Boolean) as string[]),
                             ];
+
                             return (
                               <div
                                 key={d.id}
+                                draggable={!d.readOnly && !isGlobalReadOnly}
+                                onDragStart={() => setDragDealId(d.id)}
+                                onDragEnd={() => {
+                                  setDragDealId(null);
+                                  setDragOverStage(null);
+                                }}
                                 data-testid={`board-card-${d.id}`}
-                                className="rounded-[8px] border border-line bg-white p-3 shadow-xs"
+                                className="group/card rounded-[4px] border border-[#cbd6e2] bg-white shadow-[0_1px_2px_rgba(51,71,91,0.06)] transition-shadow hover:border-[#99acc2] hover:shadow-[0_3px_10px_rgba(51,71,91,0.12)]"
                               >
-                                <A to={`/deals/${d.id}`} className="hs-link block text-[13.5px] font-semibold leading-snug">
-                                  {d.name}
-                                </A>
-                                {company ? <p className="mt-0.5 text-[12px] text-ink-muted">{company.name}</p> : null}
-                                <div className="mt-2 flex items-center justify-between text-[12.5px]">
-                                  <span className="font-semibold tabular-nums">{money(d.amount)}</span>
-                                  <div className="flex items-center gap-1">
-                                    {ownerIds.map((oid) => {
-                                      const p = pack.personas.find((x) => x.id === oid);
-                                      return p ? <Avatar key={oid} name={p.name} color={p.color} size={20} /> : null;
-                                    })}
+                                <div className="p-3">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <A to={`/deals/${d.id}`} className="hs-link text-[13px] leading-snug">
+                                      {d.name}
+                                    </A>
+                                    <button
+                                      type="button"
+                                      onClick={() => dispatch({ t: "ui", k: "preview", v: `deal:${d.id}` })}
+                                      title="Preview deal"
+                                      className="rounded p-0.5 text-[#7c98b6] opacity-0 group-hover/card:opacity-100 hover:bg-[#eaf0f6] hover:text-[#33475b]"
+                                    >
+                                      <Icon name="eye" size={13} />
+                                    </button>
+                                  </div>
+
+                                  <div className="mt-2 space-y-0.5 text-[12px] text-[#516f90]">
+                                    <p>
+                                      Amount: <strong className="font-semibold tabular-nums text-[#33475b]">{money(d.amount)}</strong>
+                                    </p>
+                                    <p>
+                                      Close date: <span className="text-[#33475b]">{shortDate(d.closeDate)}</span>
+                                    </p>
+                                    {d.bidDate ? (
+                                      <p>
+                                        Bid date: <span className="font-medium text-[#0091ae]">{shortDate(d.bidDate)}</span>
+                                      </p>
+                                    ) : null}
+                                  </div>
+
+                                  {/* Associated Company / Contact Badges + Division Pill + Owner Avatars */}
+                                  <div className="mt-2.5 flex flex-wrap items-center justify-between gap-1.5">
+                                    <div className="flex flex-wrap items-center gap-1">
+                                      {company ? (
+                                        <span className="inline-flex max-w-[165px] items-center gap-1 truncate rounded-[3px] bg-[#eaf0f6] px-1.5 py-0.5 text-[11px] font-medium text-[#33475b]">
+                                          <Icon name="company" size={11} className="shrink-0 text-[#516f90]" />
+                                          <span className="truncate">{company.name}</span>
+                                        </span>
+                                      ) : null}
+                                      {primaryContact ? (
+                                        <Avatar
+                                          name={`${primaryContact.firstName} ${primaryContact.lastName}`}
+                                          color={colorFor(primaryContact.id)}
+                                          size={19}
+                                        />
+                                      ) : null}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      {ownerIds.map((oid) => {
+                                        const p = pack.personas.find((x) => x.id === oid);
+                                        return p ? <Avatar key={oid} name={p.name} color={p.color} size={19} /> : null;
+                                      })}
+                                    </div>
+                                  </div>
+
+                                  <div className="mt-2 flex items-center justify-between gap-2">
+                                    <Tag tone="neutral">{d.division}</Tag>
+                                    {!d.readOnly && !isGlobalReadOnly ? (
+                                      <Menu
+                                        width={220}
+                                        align="right"
+                                        button={({ toggle }) => (
+                                          <button
+                                            type="button"
+                                            onClick={toggle}
+                                            data-testid={`card-move-stage-${d.id}`}
+                                            className="inline-flex h-6 items-center gap-1 rounded-[3px] border border-[#cbd6e2] bg-[#f5f8fa] px-2 text-[11px] font-semibold text-[#33475b] hover:bg-[#eaf0f6]"
+                                          >
+                                            <span>Move stage</span>
+                                            <Icon name="chevronDown" size={11} />
+                                          </button>
+                                        )}
+                                      >
+                                        {(close) =>
+                                          activePipeline.stages.map((opt) => (
+                                            <MenuItem
+                                              key={opt.id}
+                                              active={opt.id === d.stage}
+                                              testId={`move-${d.id}-to-${opt.id}`}
+                                              onClick={() => {
+                                                close();
+                                                requestStageMove(d, opt.id);
+                                              }}
+                                            >
+                                              {opt.label}
+                                            </MenuItem>
+                                          ))
+                                        }
+                                      </Menu>
+                                    ) : null}
                                   </div>
                                 </div>
-                                {d.bidDate ? <p className="mt-1 text-[11px] text-ink-muted">Bid date: {date(d.bidDate)}</p> : null}
 
-                                {!d.readOnly && !isGlobalReadOnly ? (
-                                  <Menu
-                                    width={220}
-                                    className="mt-2"
-                                    button={({ toggle }) => (
-                                      <button
-                                        type="button"
-                                        onClick={toggle}
-                                        data-testid={`card-move-stage-${d.id}`}
-                                        className="flex h-7 w-full items-center justify-between rounded border border-line bg-[#fafafa] px-2 text-[11.5px] font-medium hover:bg-[#efefef]"
-                                      >
-                                        <span>Move stage…</span>
-                                        <Icon name="chevronDown" size={12} />
-                                      </button>
-                                    )}
-                                  >
-                                    {(close) =>
-                                      activePipeline.stages.map((opt) => (
-                                        <MenuItem
-                                          key={opt.id}
-                                          active={opt.id === d.stage}
-                                          testId={`move-${d.id}-to-${opt.id}`}
-                                          onClick={() => {
-                                            close();
-                                            requestStageMove(d, opt.id);
-                                          }}
-                                        >
-                                          {opt.label}
-                                        </MenuItem>
-                                      ))
-                                    }
-                                  </Menu>
-                                ) : (
-                                  <div className="mt-2 text-[11px] font-medium text-ink-muted">Read-only shadow card</div>
-                                )}
+                                {/* Signature HubSpot Card Activity Health Footer */}
+                                <div
+                                  className={cx(
+                                    "flex items-center gap-1.5 border-t px-3 py-1.5 text-[11px]",
+                                    nextTask
+                                      ? "border-[#eaf0f6] bg-[#f5f8fa] text-[#516f90]"
+                                      : "border-[#f5c26b]/50 bg-[#fef6e7]/75 text-[#8a5300]",
+                                  )}
+                                >
+                                  {nextTask ? (
+                                    <>
+                                      <Icon name="task" size={12} className="shrink-0 text-[#0091ae]" />
+                                      <span className="truncate">Next: {nextTask.title}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Icon name="warning" size={12} className="shrink-0 text-[#d97706]" />
+                                      <span className="font-medium">No activity scheduled</span>
+                                    </>
+                                  )}
+                                </div>
                               </div>
                             );
                           })}
+                        </div>
+
+                        {/* Sticky HubSpot Stage Column Footer: Total & Weighted */}
+                        <div
+                          className="border-t border-[#dfe3eb] bg-white px-3 py-2 text-[11.5px] text-[#516f90]"
+                          data-testid={`board-col-totals-${st.id}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>Total:</span>
+                            <strong className="font-semibold tabular-nums text-[#33475b]">{money(sum)}</strong>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span>Weighted ({probPct}%):</span>
+                            <span className="font-semibold tabular-nums text-[#33475b]">{money(weighted)}</span>
+                          </div>
                         </div>
                       </div>
                     );
@@ -658,12 +998,12 @@ export function DealsIndex() {
 
       {addViewOpen ? (
         <Modal
-          title="Create Saved Deal View"
+          title="Create new saved view"
+          subtitle="Pin filtered pipeline tabs to your HubSpot Deals bar"
           onClose={() => setAddViewOpen(false)}
           testId="create-view-modal"
           footer={
             <>
-              <Button onClick={() => setAddViewOpen(false)}>Cancel</Button>
               <Button
                 variant="primary"
                 disabled={!viewLabel.trim()}
@@ -682,52 +1022,64 @@ export function DealsIndex() {
               >
                 Save view tab
               </Button>
+              <Button onClick={() => setAddViewOpen(false)}>Cancel</Button>
             </>
           }
         >
-          <div className="space-y-3.5 text-[13.5px]">
+          <div className="space-y-4 text-[13px]">
             <label className="block space-y-1">
-              <span className="font-semibold">View name *</span>
+              <span className="font-medium text-[#516f90]">View name *</span>
               <input
                 type="text"
                 value={viewLabel}
                 onChange={(e) => setViewLabel(e.target.value)}
                 data-testid="view-name-input"
-                className="h-9 w-full rounded-[6px] border border-line px-3"
+                className="hs-input w-full"
               />
             </label>
             <label className="block space-y-1">
-              <span className="font-semibold">Sharing visibility</span>
+              <span className="font-medium text-[#516f90]">Shared with</span>
               <select
                 value={viewVisibility}
                 onChange={(e) => setViewVisibility(e.target.value as "Private" | "Team")}
                 data-testid="view-visibility-select"
-                className="h-9 w-full rounded-[6px] border border-line bg-white px-3"
+                className="hs-input w-full"
               >
                 <option value="Private">Private (only me)</option>
                 <option value="Team">My Division Team</option>
               </select>
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={viewMyDeals} onChange={(e) => setViewMyDeals(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={viewMyDeals}
+                onChange={(e) => setViewMyDeals(e.target.checked)}
+                className="accent-[#0091ae]"
+              />
               <span>Filter to deals where I am Owner / Inside Sales / Estimator</span>
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={viewBidThisMonth} onChange={(e) => setViewBidThisMonth(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={viewBidThisMonth}
+                onChange={(e) => setViewBidThisMonth(e.target.checked)}
+                className="accent-[#0091ae]"
+              />
               <span>Bid Date or Close Date within next 30 days</span>
             </label>
           </div>
         </Modal>
       ) : null}
 
-      {addDealOpen ? (
-        <Modal
+      {/* Authentic Right-Side HubSpot Create Deal Drawer */}
+      {isAddDealOpen ? (
+        <Drawer
           title="Create Deal"
-          onClose={() => setAddDealOpen(false)}
+          subtitle={`Pipeline: ${activePipeline && !activePipeline.readOnly ? activePipeline.name : pack.pipelines[0]?.name}`}
+          onClose={closeAddDeal}
           testId="create-deal-modal"
           footer={
             <>
-              <Button onClick={() => setAddDealOpen(false)}>Cancel</Button>
               <Button
                 variant="primary"
                 disabled={!dealName.trim()}
@@ -746,56 +1098,69 @@ export function DealsIndex() {
                     companyLabels: { [dealCompanyId]: [dealCompanyRole] },
                     at: nowMs(),
                   });
-                  setAddDealOpen(false);
+                  closeAddDeal();
                   setDealName("");
                   navigate("/deals");
                 }}
               >
-                Create deal
+                Create
               </Button>
+              <Button onClick={closeAddDeal}>Cancel</Button>
             </>
           }
         >
-          <div className="space-y-3.5 text-[13.5px]">
+          <div className="space-y-4 text-[13px]">
             <label className="block space-y-1">
-              <span className="font-semibold">Deal Name *</span>
+              <span className="font-medium text-[#516f90]">Deal name *</span>
               <input
                 type="text"
                 value={dealName}
                 onChange={(e) => setDealName(e.target.value)}
                 placeholder="Vanguard GC — Substation Perimeter Fence"
                 data-testid="deal-name-input"
-                className="h-9 w-full rounded-[6px] border border-line px-3"
+                className="hs-input w-full"
+              />
+            </label>
+            <label className="block space-y-1">
+              <span className="font-medium text-[#516f90]">Pipeline *</span>
+              <input
+                readOnly
+                value={(activePipeline && !activePipeline.readOnly ? activePipeline : pack.pipelines[0])?.name ?? ""}
+                className="hs-input w-full !bg-[#eaf0f6]"
               />
             </label>
             <div className="grid grid-cols-2 gap-3">
               <label className="block space-y-1">
-                <span className="font-semibold">Amount ($)</span>
+                <span className="font-medium text-[#516f90]">Amount</span>
                 <input
                   type="number"
                   value={dealAmount}
                   onChange={(e) => setDealAmount(e.target.value)}
-                  className="h-9 w-full rounded-[6px] border border-line px-3"
+                  className="hs-input w-full"
                 />
               </label>
               <label className="block space-y-1">
-                <span className="font-semibold">Expected Close Date</span>
+                <span className="font-medium text-[#516f90]">Close date</span>
                 <input
                   type="date"
                   value={dealCloseDate}
                   onChange={(e) => setDealCloseDate(e.target.value)}
-                  className="h-9 w-full rounded-[6px] border border-line px-3"
+                  className="hs-input w-full"
                 />
               </label>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <label className="block space-y-1">
+              <span className="font-medium text-[#516f90]">Deal owner</span>
+              <input readOnly value={persona.name} className="hs-input w-full !bg-[#eaf0f6]" />
+            </label>
+
+            <div className="border-t border-[#dfe3eb] pt-4">
+              <p className="mb-2 text-[12px] font-bold uppercase tracking-wider text-[#516f90]">
+                Associate Deal with
+              </p>
               <label className="block space-y-1">
-                <span className="font-semibold">Associated Company</span>
-                <select
-                  value={dealCompanyId}
-                  onChange={(e) => setDealCompanyId(e.target.value)}
-                  className="h-9 w-full rounded-[6px] border border-line bg-white px-3"
-                >
+                <span className="font-medium text-[#516f90]">Company</span>
+                <select value={dealCompanyId} onChange={(e) => setDealCompanyId(e.target.value)} className="hs-input w-full">
                   {world.companies.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -803,13 +1168,9 @@ export function DealsIndex() {
                   ))}
                 </select>
               </label>
-              <label className="block space-y-1">
-                <span className="font-semibold">Company Association Label</span>
-                <select
-                  value={dealCompanyRole}
-                  onChange={(e) => setDealCompanyRole(e.target.value)}
-                  className="h-9 w-full rounded-[6px] border border-line bg-white px-3"
-                >
+              <label className="mt-3 block space-y-1">
+                <span className="font-medium text-[#516f90]">Association label</span>
+                <select value={dealCompanyRole} onChange={(e) => setDealCompanyRole(e.target.value)} className="hs-input w-full">
                   <option value="General Contractor">General Contractor</option>
                   <option value="A/E Firm">A/E Firm</option>
                   <option value="Project Owner">Project Owner</option>
@@ -818,7 +1179,7 @@ export function DealsIndex() {
               </label>
             </div>
           </div>
-        </Modal>
+        </Drawer>
       ) : null}
     </>
   );
@@ -832,7 +1193,7 @@ export function TasksIndex() {
   const activeQueue = world.ui["tasks.view"] || "mine";
 
   const views: View<Task>[] = [
-    { id: "mine", label: "My open tasks", filter: (t) => t.status !== "done" && t.ownerId === persona.id },
+    { id: "mine", label: "My open tasks", filter: (t) => t.status !== "done" && t.ownerId === persona.id, closable: false },
     { id: "Prepare quotes", label: "Queue: Prepare quotes", filter: (t) => t.status !== "done" && t.queue === "Prepare quotes" },
     { id: "Quote follow-ups", label: "Queue: Quote follow-ups", filter: (t) => t.status !== "done" && t.queue === "Quote follow-ups" },
     { id: "Stuck deal", label: "Queue: Stuck deal", filter: (t) => t.status !== "done" && t.queue === "Stuck deal" },
@@ -844,32 +1205,38 @@ export function TasksIndex() {
   const columns: Column<Task>[] = [
     {
       id: "done",
-      label: "Done",
-      width: 60,
+      label: "Status",
+      width: 72,
       cell: (t) => (
         <input
           type="checkbox"
           checked={t.status === "done"}
           data-testid={`task-check-${t.id}`}
           onChange={() => dispatch({ t: "task.toggle", id: t.id })}
+          className="h-4 w-4 accent-[#0091ae]"
         />
       ),
     },
     {
       id: "title",
-      label: "Task Title",
+      label: "Title",
       sort: (t) => t.title,
-      cell: (t) => <span className={cx("font-semibold", t.status === "done" && "line-through text-ink-muted")}>{t.title}</span>,
+      cell: (t) => (
+        <span className={cx("font-semibold text-[#33475b]", t.status === "done" && "line-through text-[#7c98b6]")}>
+          {t.title}
+        </span>
+      ),
     },
-    { id: "queue", label: "Queue", cell: (t) => (t.queue ? <Tag tone="purple">{t.queue}</Tag> : "General") },
+    { id: "type", label: "Type", cell: (t) => <Tag tone="blue">{t.type}</Tag> },
+    { id: "queue", label: "Queue", cell: (t) => (t.queue ? <Tag tone="purple">{t.queue}</Tag> : "None") },
     {
       id: "priority",
       label: "Priority",
-      cell: (t) => <Tag tone={t.priority === "High" ? "red" : "neutral"}>{t.priority}</Tag>,
+      cell: (t) => <Tag tone={t.priority === "High" ? "red" : t.priority === "Medium" ? "amber" : "neutral"}>{t.priority}</Tag>,
     },
     {
       id: "record",
-      label: "Associated Record",
+      label: "Associated With",
       cell: (t) => {
         if (t.dealId) {
           const d = world.deals.find((x) => x.id === t.dealId);
@@ -903,7 +1270,8 @@ export function TasksIndex() {
   return (
     <Ext id="shared-task-queues">
       <IndexPage
-        title="Tasks & Shared Queues"
+        title="Tasks"
+        objectSwitcherLabel="Tasks"
         noun="task"
         rows={world.tasks}
         columns={columns}
@@ -922,38 +1290,69 @@ export function TasksIndex() {
   );
 }
 
-/* ─────────────────────────── NATIVE QUOTES INDEX ─────────────────────────── */
+/* ─────────────────────────── HUBSPOT COMMERCE QUOTES INDEX ─────────────────────────── */
 export function QuotesIndex() {
-  const { world } = useShell();
-  const views: View<Quote>[] = [{ id: "all", label: "All native HubSpot quotes", filter: () => true }];
+  const { pack, world } = useShell();
+  const views: View<Quote>[] = [
+    { id: "all", label: "All quotes", filter: () => true },
+    { id: "draft", label: "Draft / Pending", filter: (q) => q.status !== "Accepted" && q.status !== "Sent" },
+    { id: "published", label: "Published & Signed", filter: (q) => q.status === "Sent" || q.status === "Accepted" },
+  ];
   const columns: Column<Quote>[] = [
     {
       id: "num",
-      label: "Quote #",
+      label: "Quote",
       cell: (q) => (
-        <A to={`/quotes/${q.id}`} className="hs-link font-semibold" data-testid={`quote-link-${q.id}`}>
+        <A to={`/quotes/${q.id}`} className="hs-link" data-testid={`quote-link-${q.id}`}>
           {q.number}: {q.title}
         </A>
       ),
     },
-    { id: "status", label: "Status", cell: (q) => <Tag tone={statusTone(q.status)}>{q.status}</Tag> },
-    { id: "exp", label: "Valid Until", cell: (q) => date(q.validUntil) },
     {
-      id: "lines",
-      label: "Line Items",
-      cell: (q) => `${q.lineItems.length} SKU${q.lineItems.length === 1 ? "" : "s"}`,
+      id: "amount",
+      label: "Quote Amount",
+      align: "right",
+      cell: (q) => {
+        const sub = q.lineItems.reduce((s, li) => s + li.qty * li.unitPrice, 0);
+        return <span className="font-semibold">{money(sub * (1 - q.discountPct / 100))}</span>;
+      },
     },
+    { id: "status", label: "Status", cell: (q) => <Tag tone={statusTone(q.status)}>{q.status}</Tag> },
+    {
+      id: "deal",
+      label: "Associated Deal",
+      cell: (q) => {
+        const dl = world.deals.find((d) => d.id === q.dealId);
+        return dl ? (
+          <A to={`/deals/${dl.id}`} className="hs-link">
+            {dl.name}
+          </A>
+        ) : (
+          "—"
+        );
+      },
+    },
+    {
+      id: "owner",
+      label: "Quote Owner",
+      cell: (q) => pack.personas.find((u) => u.id === q.ownerId)?.name ?? q.ownerId,
+    },
+    { id: "exp", label: "Expiration Date", cell: (q) => shortDate(q.validUntil) },
   ];
 
   return (
     <IndexPage
-      title="Quotes (Oracle-Migrated Native HubSpot Quotes)"
+      title="Quotes"
+      objectSwitcherLabel="Quotes"
       noun="quote"
       rows={world.quotes}
       columns={columns}
       views={views}
       rowKey={(q) => q.id}
       searchText={(q) => `${q.number} ${q.title} ${q.status}`}
+      headerActions={
+        <Tag tone="blue">Commerce Hub · Solar, Global &amp; Groenveld-BEKA Native Quotes</Tag>
+      }
     />
   );
 }
@@ -961,19 +1360,19 @@ export function QuotesIndex() {
 /* ─────────────────────────── PRODUCTS INDEX ─────────────────────────── */
 export function ProductsIndex() {
   const { pack } = useShell();
-  const views: View<Product>[] = [{ id: "all", label: "Oracle & AMICO Product Library", filter: () => true }];
+  const views: View<Product>[] = [{ id: "all", label: "All products", filter: () => true }];
   const columns: Column<Product>[] = [
-    { id: "sku", label: "SKU", cell: (p) => <span className="font-mono text-[12.5px] font-semibold">{p.sku}</span> },
-    { id: "name", label: "Product Name", cell: (p) => p.name },
-    { id: "cat", label: "Family", cell: (p) => p.family },
-    { id: "div", label: "Division", cell: (p) => p.division ?? "All Divisions" },
-    { id: "lead", label: "Lead Days", cell: (p) => `${p.leadDays}d` },
-    { id: "price", label: "List Price", align: "right", cell: (p) => money2(p.price) },
+    { id: "name", label: "Name", cell: (p) => <span className="font-semibold text-[#33475b]">{p.name}</span> },
+    { id: "sku", label: "SKU", cell: (p) => <span className="font-mono text-[12px] text-[#516f90]">{p.sku}</span> },
+    { id: "cat", label: "Product Family", cell: (p) => p.family },
+    { id: "div", label: "Division", cell: (p) => <Tag tone="neutral">{p.division ?? "All Divisions"}</Tag> },
+    { id: "lead", label: "Lead Time", cell: (p) => `${p.leadDays} days` },
+    { id: "price", label: "Unit Price (USD)", align: "right", cell: (p) => money2(p.price) },
   ];
 
   return (
     <IndexPage
-      title="Products · Oracle-Migrated SKU Catalog"
+      title="Products"
       noun="product"
       rows={pack.products}
       columns={columns}
@@ -991,22 +1390,22 @@ export function WorkflowsIndex() {
   const columns: Column<Workflow>[] = [
     {
       id: "name",
-      label: "Workflow Name",
+      label: "Name",
       cell: (w) => (
-        <A to={`/workflows/${w.id}`} className="hs-link font-semibold" data-testid={`workflow-link-${w.id}`}>
+        <A to={`/workflows/${w.id}`} className="hs-link" data-testid={`workflow-link-${w.id}`}>
           {w.name}
         </A>
       ),
     },
-    { id: "obj", label: "Object", cell: (w) => w.object },
-    { id: "desc", label: "Summary", cell: (w) => w.description },
+    { id: "obj", label: "Object Type", cell: (w) => <Tag tone="blue">{w.object}</Tag> },
+    { id: "desc", label: "Trigger & Action Summary", cell: (w) => w.description },
     { id: "status", label: "Status", cell: (w) => <Tag tone={statusTone(w.status)}>{w.status}</Tag> },
     { id: "enrolled", label: "Total Enrolled", align: "right", cell: (w) => w.enrolled },
   ];
 
   return (
     <IndexPage
-      title="Workflows · AMICO Automation"
+      title="Workflows"
       noun="workflow"
       rows={pack.workflows}
       columns={columns}
@@ -1014,5 +1413,132 @@ export function WorkflowsIndex() {
       rowKey={(w) => w.id}
       searchText={(w) => `${w.name} ${w.description} ${w.object}`}
     />
+  );
+}
+
+/* ─────────────────────────── TICKETS INDEX (SERVICE / DELIVERY ISSUES) ─────────────────────────── */
+type TicketRow = {
+  id: string;
+  subject: string;
+  pipeline: string;
+  stage: string;
+  priority: "High" | "Medium" | "Low";
+  companyId: string;
+  projectId?: string;
+  createdAt: string;
+};
+
+export function TicketsIndex() {
+  const { world } = useShell();
+
+  const ticketRows: TicketRow[] = [
+    {
+      id: "tkt-901",
+      subject: "Anchor bolt template revision — substation gate pier #4",
+      pipeline: "Post-Award Engineering & Field Support",
+      stage: "Waiting on Engineering",
+      priority: "High",
+      companyId: world.projects[0]?.companyId ?? world.companies[0]?.id ?? "",
+      projectId: world.projects[0]?.id,
+      createdAt: world.projects[0]?.startDate ?? new Date().toISOString(),
+    },
+    {
+      id: "tkt-902",
+      subject: "Freight carrier appointment confirmation — jobsite delivery",
+      pipeline: "Post-Award Engineering & Field Support",
+      stage: "In Progress",
+      priority: "Medium",
+      companyId: world.companies[0]?.id ?? "",
+      createdAt: new Date().toISOString(),
+    },
+  ];
+
+  const columns: Column<TicketRow>[] = [
+    { id: "sub", label: "Ticket Name", cell: (t) => <span className="font-semibold text-[#0091ae]">{t.subject}</span> },
+    { id: "pipe", label: "Pipeline", cell: (t) => t.pipeline },
+    { id: "stage", label: "Ticket Status", cell: (t) => <Tag tone="amber">{t.stage}</Tag> },
+    { id: "pri", label: "Priority", cell: (t) => <Tag tone={t.priority === "High" ? "red" : "neutral"}>{t.priority}</Tag> },
+    {
+      id: "co",
+      label: "Associated Company",
+      cell: (t) => {
+        const co = world.companies.find((c) => c.id === t.companyId);
+        return co ? (
+          <A to={`/companies/${co.id}`} className="hs-link">
+            {co.name}
+          </A>
+        ) : (
+          "—"
+        );
+      },
+    },
+    {
+      id: "proj",
+      label: "Associated Project",
+      cell: (t) => {
+        const prj = world.projects.find((p) => p.id === t.projectId);
+        return prj ? (
+          <A to={`/projects/${prj.id}`} className="hs-link">
+            {prj.code}: {prj.name}
+          </A>
+        ) : (
+          "—"
+        );
+      },
+    },
+  ];
+
+  return (
+    <IndexPage
+      title="Tickets"
+      objectSwitcherLabel="Tickets"
+      noun="ticket"
+      rows={ticketRows}
+      columns={columns}
+      views={[{ id: "all", label: "All tickets", filter: () => true }]}
+      rowKey={(t) => t.id}
+      searchText={(t) => `${t.subject} ${t.stage}`}
+    />
+  );
+}
+
+/* ─────────────────────────── REPORTING DASHBOARDS ─────────────────────────── */
+export function ReportingDashboardPage() {
+  const { pack, world } = useShell();
+  const divisionDeals = world.deals.filter((d) => !d.readOnly);
+  const totalPipeline = divisionDeals.reduce((s, d) => s + d.amount, 0);
+  const stuckDeals = divisionDeals.filter((d) => (d.daysInStage ?? 0) >= 14);
+
+  return (
+    <div className="space-y-5 p-6" data-testid="reporting-dashboard">
+      <div className="flex items-center justify-between border-b border-[#dfe3eb] pb-4">
+        <div>
+          <h1 className="hs-heading text-[20px] font-bold text-[#33475b]">AMICO Executive &amp; Division Pipeline Dashboard</h1>
+          <p className="text-[12.5px] text-[#516f90]">
+            Real-time Smart CRM rollup across {pack.pipelines.filter((p) => !p.readOnly).length} active division pipelines
+          </p>
+        </div>
+        <Tag tone="teal">Live HubSpot Reporting</Tag>
+      </div>
+
+      <div className="grid grid-cols-4 gap-4">
+        <Card title="Open Division Pipeline">
+          <p className="text-[24px] font-bold tabular-nums text-[#33475b]">{money(totalPipeline)}</p>
+          <p className="mt-1 text-[12px] text-[#516f90]">{divisionDeals.length} active opportunities</p>
+        </Card>
+        <Card title="Synced Epicor Quotes">
+          <p className="text-[24px] font-bold tabular-nums text-[#33475b]">{world.epicorQuotes.length}</p>
+          <p className="mt-1 text-[12px] text-[#516f90]">Read-only ERP quote mirror</p>
+        </Card>
+        <Card title="Active Delivery Projects">
+          <p className="text-[24px] font-bold tabular-nums text-[#33475b]">{world.projects.length}</p>
+          <p className="mt-1 text-[12px] text-[#516f90]">Post-award PM execution</p>
+        </Card>
+        <Card title="Stuck Deals (> 14 Days)">
+          <p className="text-[24px] font-bold tabular-nums text-[#b0232a]">{stuckDeals.length}</p>
+          <p className="mt-1 text-[12px] text-[#516f90]">Auto-enrolled in Stuck Deal queue</p>
+        </Card>
+      </div>
+    </div>
   );
 }

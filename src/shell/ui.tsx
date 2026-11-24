@@ -8,7 +8,18 @@ import { Icon, type IconName } from "./icons";
 export const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
 
 /** A link inside the shell. Moves with the browser history, so no page is requested. */
-export function A({ to, className, children, onClick, ...rest }: { to: string; className?: string; children: React.ReactNode; onClick?: () => void } & Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href" | "onClick">) {
+export function A({
+  to,
+  className,
+  children,
+  onClick,
+  ...rest
+}: {
+  to: string;
+  className?: string;
+  children: React.ReactNode;
+  onClick?: () => void;
+} & Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href" | "onClick">) {
   const { href, navigate } = useShell();
   return (
     <a
@@ -27,57 +38,113 @@ export function A({ to, className, children, onClick, ...rest }: { to: string; c
   );
 }
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "ghost" | "breeze" | "dark"; size?: "sm" | "md"; icon?: IconName };
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: "primary" | "secondary" | "ghost" | "breeze" | "dark";
+  size?: "xs" | "sm" | "md";
+  icon?: IconName;
+};
 
 export function Button({ variant = "secondary", size = "md", icon, className, children, ...rest }: ButtonProps) {
   const styles = {
-    primary: "bg-hs-orange text-white hover:bg-hs-orange-strong disabled:bg-[#e6e6e6] disabled:text-[#8a8a8a]",
-    secondary: "border border-ink bg-white text-ink hover:bg-[#f5f5f5] disabled:border-[#cfcfcf] disabled:text-[#9a9a9a]",
-    ghost: "text-link hover:bg-[#eef5f5] disabled:text-[#9a9a9a]",
-    breeze: "border border-breeze bg-white text-breeze hover:bg-breeze-soft disabled:opacity-50",
-    dark: "bg-ink text-white hover:bg-[#333] disabled:bg-[#e6e6e6] disabled:text-[#8a8a8a]",
+    primary:
+      "border border-[#ff5c35] bg-[#ff5c35] text-white hover:border-[#e84b27] hover:bg-[#e84b27] disabled:border-[#dfe3eb] disabled:bg-[#eaf0f6] disabled:text-[#7c98b6]",
+    secondary:
+      "border border-[#cbd6e2] bg-white text-[#33475b] hover:bg-[#eaf0f6] hover:border-[#99acc2] disabled:border-[#dfe3eb] disabled:bg-[#f5f8fa] disabled:text-[#7c98b6]",
+    ghost:
+      "border border-transparent bg-transparent text-[#0091ae] hover:bg-[#e5f5f8] hover:text-[#007a8c] disabled:text-[#7c98b6]",
+    breeze:
+      "border border-[#cbd6e2] bg-white text-[#b01b68] hover:bg-[#fdebf3] disabled:opacity-50",
+    dark:
+      "border border-[#33475b] bg-[#33475b] text-white hover:bg-[#253342] disabled:border-[#dfe3eb] disabled:bg-[#eaf0f6] disabled:text-[#7c98b6]",
   }[variant];
+
+  const sz =
+    size === "xs"
+      ? "h-7 px-2.5 text-[12px]"
+      : size === "sm"
+        ? "h-8 px-3 text-[12.5px]"
+        : "h-[34px] px-3.5 text-[13px]";
+
   return (
     <button
       type="button"
-      className={cx("inline-flex shrink-0 items-center justify-center gap-1.5 rounded-[6px] font-semibold transition-colors", size === "sm" ? "h-8 px-3 text-[12.5px]" : "h-9 px-4 text-[13.5px]", styles, className)}
+      className={cx(
+        "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-[3px] font-medium transition-colors",
+        sz,
+        styles,
+        className,
+      )}
       {...rest}
     >
-      {icon ? <Icon name={icon} size={size === "sm" ? 14 : 15} /> : null}
+      {icon ? <Icon name={icon} size={size === "xs" ? 13 : 14} /> : null}
       {children}
     </button>
   );
 }
 
-export function Card({ title, right, children, className, pad = true, testId }: { title?: React.ReactNode; right?: React.ReactNode; children: React.ReactNode; className?: string; pad?: boolean; testId?: string }) {
+export function Card({
+  title,
+  right,
+  children,
+  className,
+  pad = true,
+  testId,
+  collapsible = false,
+  defaultOpen = true,
+}: {
+  title?: React.ReactNode;
+  right?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+  pad?: boolean;
+  testId?: string;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <section className={cx("rounded-[10px] border border-line bg-white", className)} data-testid={testId}>
+    <section className={cx("rounded-[4px] border border-[#dfe3eb] bg-white", className)} data-testid={testId}>
       {title ? (
-        <header className="flex min-h-11 items-center justify-between gap-3 px-4 pt-3">
-          <h3 className="text-[14px] font-semibold">{title}</h3>
-          {right}
+        <header className="flex min-h-10 items-center justify-between gap-2 border-b border-[#eaf0f6] px-4 py-2.5">
+          {collapsible ? (
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              className="flex min-w-0 items-center gap-1.5 text-left text-[13.5px] font-semibold text-[#33475b] hover:text-[#0091ae]"
+            >
+              <Icon name={open ? "chevronDown" : "chevronRight"} size={14} className="shrink-0 text-[#516f90]" />
+              <span className="truncate">{title}</span>
+            </button>
+          ) : (
+            <h3 className="text-[13.5px] font-semibold text-[#33475b]">{title}</h3>
+          )}
+          {right ? <div className="flex shrink-0 items-center gap-1.5">{right}</div> : null}
         </header>
       ) : null}
-      <div className={pad ? "px-4 pb-4 pt-3" : ""}>{children}</div>
+      {!collapsible || open ? <div className={pad ? "p-4" : ""}>{children}</div> : null}
     </section>
   );
 }
 
 const TONES = {
-  neutral: "bg-[#ececec] text-[#3d3d3d]",
-  green: "bg-[#dff4e4] text-[#0b5b2b]",
-  amber: "bg-[#fdefc8] text-[#754c00]",
-  red: "bg-[#fde0dd] text-[#99201a]",
-  blue: "bg-[#dcecf9] text-[#0b4a78]",
-  teal: "bg-[#d9f0ee] text-[#00514f]",
-  orange: "bg-[#ffe4d6] text-[#a03400]",
-  purple: "bg-penguin-soft text-penguin-strong",
-  pink: "bg-breeze-soft text-breeze",
+  neutral: "bg-[#eaf0f6] text-[#33475b] border border-[#cbd6e2]/70",
+  green: "bg-[#e5f8f6] text-[#006c5f] border border-[#99e2d8]",
+  amber: "bg-[#fef6e7] text-[#8a5300] border border-[#f5c26b]",
+  red: "bg-[#fdecee] text-[#b0232a] border border-[#f7b2b6]",
+  blue: "bg-[#e5f5f8] text-[#00677d] border border-[#99d6e2]",
+  teal: "bg-[#e5f8f6] text-[#006c5f] border border-[#99e2d8]",
+  orange: "bg-[#fff1ed] text-[#b83718] border border-[#ffbfa8]",
+  purple: "bg-[#f1eeff] text-[#4c32b7] border border-[#cfc4ff]",
+  pink: "bg-[#fdebf3] text-[#a3155b] border border-[#f5b5d2]",
 } as const;
 export type Tone = keyof typeof TONES;
 
 export function Tag({ tone = "neutral", children, className }: { tone?: Tone; children: React.ReactNode; className?: string }) {
-  return <span className={cx("inline-flex h-[22px] items-center whitespace-nowrap rounded-[4px] px-2 text-[11.5px] font-semibold", TONES[tone], className)}>{children}</span>;
+  return (
+    <span className={cx("inline-flex h-[21px] items-center whitespace-nowrap rounded-[3px] px-2 text-[11px] font-semibold", TONES[tone], className)}>
+      {children}
+    </span>
+  );
 }
 
 export function statusTone(status: string): Tone {
@@ -92,87 +159,153 @@ export function statusTone(status: string): Tone {
     case "Current":
     case "Closed won":
     case "Awarded - Won":
+    case "Awarded":
+    case "Connected":
+    case "Qualified":
+    case "on-track":
       return "green";
     case "Pending approval":
     case "Open":
     case "Partially shipped":
     case "In production":
+    case "Attempting":
+    case "at-risk":
       return "amber";
     case "Overdue":
     case "Past due":
     case "Credit hold":
     case "Closed lost":
     case "Closed - Lost":
+    case "Disqualified":
+    case "blocked":
       return "red";
     case "Sent":
+    case "New":
       return "blue";
     default:
       return "neutral";
   }
 }
 
-export function Avatar({ name, color = "#5c6f82", size = 28 }: { name: string; color?: string; size?: number }) {
+export function Avatar({ name, color = "#516f90", size = 26 }: { name: string; color?: string; size?: number }) {
   return (
-    <span className="inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white" style={{ width: size, height: size, background: color, fontSize: size * 0.38 }} aria-hidden="true">
+    <span
+      className="inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white"
+      style={{ width: size, height: size, background: color, fontSize: Math.max(10, Math.round(size * 0.39)) }}
+      aria-hidden="true"
+    >
       {initials(name)}
     </span>
   );
 }
 
-const PALETTE = ["#516f90", "#7c5ba6", "#2f7f80", "#a0572f", "#3d6fb4", "#8a4f7d", "#4f7a3f", "#946c00"];
+const PALETTE = ["#0091ae", "#516f90", "#6a4c93", "#00a4bd", "#d95f02", "#3b6fb6", "#7a5195", "#2d7d6f"];
 export function colorFor(key: string): string {
   let hash = 0;
   for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
   return PALETTE[hash % PALETTE.length];
 }
 
-/** Boxed tabs, as on a HubSpot record. */
-export function Tabs<T extends string>({ tabs, value, onChange, className }: { tabs: { id: T; label: React.ReactNode; testId?: string }[]; value: T; onChange: (id: T) => void; className?: string }) {
+/** HubSpot Saved View Tabs bar on CRM Object Index pages (active underline + optional close ×). */
+export function Tabs<T extends string>({
+  tabs,
+  value,
+  onChange,
+  onCloseTab,
+  right,
+  className,
+}: {
+  tabs: { id: T; label: React.ReactNode; testId?: string; closable?: boolean }[];
+  value: T;
+  onChange: (id: T) => void;
+  onCloseTab?: (id: T) => void;
+  right?: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div role="tablist" className={cx("flex items-end gap-1 border-b border-line", className)}>
-      {tabs.map((tab) => {
-        const active = tab.id === value;
-        return (
-          <button
-            key={tab.id}
-            role="tab"
-            type="button"
-            aria-selected={active}
-            data-testid={tab.testId}
-            onClick={() => onChange(tab.id)}
-            className={cx(
-              "-mb-px inline-flex h-9 items-center gap-1.5 rounded-t-[8px] border px-3.5 text-[13.5px]",
-              active ? "border-line border-b-white bg-white font-semibold text-ink" : "border-transparent text-ink-muted hover:bg-[#e6e6e6] hover:text-ink",
-            )}
-          >
-            {tab.label}
-          </button>
-        );
-      })}
+    <div role="tablist" className={cx("flex flex-wrap items-end justify-between gap-2 border-b border-[#dfe3eb] bg-white", className)}>
+      <div className="flex flex-wrap items-end">
+        {tabs.map((tab) => {
+          const active = tab.id === value;
+          return (
+            <div
+              key={tab.id}
+              className={cx(
+                "group relative -mb-px flex h-9 items-center border-r border-t border-[#dfe3eb] first:border-l",
+                active
+                  ? "border-b-white bg-white font-semibold text-[#33475b] before:absolute before:inset-x-0 before:top-0 before:h-[2.5px] before:bg-[#33475b]"
+                  : "border-b-[#dfe3eb] bg-[#f5f8fa] text-[#516f90] hover:bg-[#eaf0f6] hover:text-[#33475b]",
+              )}
+            >
+              <button
+                role="tab"
+                type="button"
+                aria-selected={active}
+                data-testid={tab.testId}
+                onClick={() => onChange(tab.id)}
+                className="inline-flex h-full items-center gap-1.5 px-3.5 text-[12.5px]"
+              >
+                {tab.label}
+              </button>
+              {tab.closable && onCloseTab ? (
+                <button
+                  type="button"
+                  onClick={() => onCloseTab(tab.id)}
+                  aria-label="Close view tab"
+                  className="-ml-1.5 mr-2 rounded p-0.5 text-[#7c98b6] hover:bg-[#dfe3eb] hover:text-[#33475b]"
+                >
+                  <Icon name="close" size={11} />
+                </button>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+      {right ? <div className="flex items-center gap-2 pb-1">{right}</div> : null}
     </div>
   );
 }
 
-/** Underlined tabs, as inside cards and index pages. */
-export function LineTabs<T extends string>({ tabs, value, onChange, className }: { tabs: { id: T; label: React.ReactNode; testId?: string }[]; value: T; onChange: (id: T) => void; className?: string }) {
+/** HubSpot underline tabs, as in record middle pane (`Overview | Activities`) and Sales Workspace. */
+export function LineTabs<T extends string>({
+  tabs,
+  value,
+  onChange,
+  className,
+  right,
+}: {
+  tabs: { id: T; label: React.ReactNode; testId?: string }[];
+  value: T;
+  onChange: (id: T) => void;
+  className?: string;
+  right?: React.ReactNode;
+}) {
   return (
-    <div role="tablist" className={cx("flex gap-5 border-b border-line-soft", className)}>
-      {tabs.map((tab) => {
-        const active = tab.id === value;
-        return (
-          <button
-            key={tab.id}
-            role="tab"
-            type="button"
-            aria-selected={active}
-            data-testid={tab.testId}
-            onClick={() => onChange(tab.id)}
-            className={cx("-mb-px h-9 border-b-2 text-[13.5px]", active ? "border-ink font-semibold text-ink" : "border-transparent text-ink-muted hover:text-ink")}
-          >
-            {tab.label}
-          </button>
-        );
-      })}
+    <div role="tablist" className={cx("flex items-center justify-between gap-4 border-b border-[#dfe3eb]", className)}>
+      <div className="flex gap-6">
+        {tabs.map((tab) => {
+          const active = tab.id === value;
+          return (
+            <button
+              key={tab.id}
+              role="tab"
+              type="button"
+              aria-selected={active}
+              data-testid={tab.testId}
+              onClick={() => onChange(tab.id)}
+              className={cx(
+                "-mb-px h-10 border-b-[3px] px-0.5 text-[13.5px] transition-colors",
+                active
+                  ? "border-[#33475b] font-semibold text-[#33475b]"
+                  : "border-transparent font-medium text-[#516f90] hover:border-[#cbd6e2] hover:text-[#33475b]",
+              )}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+      {right ? <div className="flex items-center gap-2">{right}</div> : null}
     </div>
   );
 }
@@ -195,7 +328,6 @@ export function useClickOutside(ref: React.RefObject<HTMLElement | null>, onClos
   }, [ref, onClose, active]);
 }
 
-/** A button with a popover. The popover closes on outside click, Escape, or when an item calls close(). */
 export function Menu({
   button,
   children,
@@ -225,7 +357,12 @@ export function Menu({
       {open ? (
         <div
           data-testid={menuTestId}
-          className={cx("hs-pop absolute z-[70] rounded-[8px] border border-line bg-white py-1.5 text-ink shadow-[0_8px_28px_rgba(20,20,20,0.18)]", align === "right" ? "right-0" : "left-0", up ? "bottom-full mb-2" : "top-full mt-1.5", menuClassName)}
+          className={cx(
+            "hs-pop absolute z-[70] rounded-[4px] border border-[#cbd6e2] bg-white py-1.5 text-[#33475b] shadow-[0_8px_24px_rgba(31,42,55,0.18)]",
+            align === "right" ? "right-0" : "left-0",
+            up ? "bottom-full mb-2" : "top-full mt-1",
+            menuClassName,
+          )}
           style={{ width }}
         >
           {children(close)}
@@ -235,22 +372,58 @@ export function Menu({
   );
 }
 
-export function MenuItem({ children, onClick, active, disabled, right, testId }: { children: React.ReactNode; onClick?: () => void; active?: boolean; disabled?: boolean; right?: React.ReactNode; testId?: string }) {
+export function MenuItem({
+  children,
+  onClick,
+  active,
+  disabled,
+  right,
+  testId,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  active?: boolean;
+  disabled?: boolean;
+  right?: React.ReactNode;
+  testId?: string;
+}) {
   return (
     <button
       type="button"
       disabled={disabled}
       onClick={onClick}
       data-testid={testId}
-      className={cx("flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left text-[13.5px]", disabled ? "text-[#9a9a9a]" : "hover:bg-[#f0f0f0]", active && "font-semibold")}
+      className={cx(
+        "flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left text-[13px]",
+        disabled ? "text-[#7c98b6]" : "text-[#33475b] hover:bg-[#e5f5f8]",
+        active && "bg-[#eaf0f6] font-semibold",
+      )}
     >
       <span className="min-w-0">{children}</span>
-      {right ?? (active ? <Icon name="check" size={15} /> : null)}
+      {right ?? (active ? <Icon name="check" size={14} className="text-[#0091ae]" /> : null)}
     </button>
   );
 }
 
-export function Modal({ title, children, footer, onClose, width = 560, testId }: { title: React.ReactNode; children: React.ReactNode; footer?: React.ReactNode; onClose: () => void; width?: number; testId?: string }) {
+export function Modal({
+  title,
+  subtitle,
+  children,
+  footer,
+  onClose,
+  width = 560,
+  testId,
+  headerTone = "hubspot",
+}: {
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  onClose: () => void;
+  width?: number;
+  testId?: string;
+  headerTone?: "hubspot" | "light";
+}) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -259,55 +432,191 @@ export function Modal({ title, children, footer, onClose, width = 560, testId }:
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(20,20,20,0.5)] p-6" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" className="hs-pop flex max-h-full flex-col overflow-hidden rounded-[12px] bg-white shadow-[0_20px_60px_rgba(20,20,20,0.35)]" style={{ width }} data-testid={testId}>
-        <header className="flex items-center justify-between border-b border-line-soft px-5 py-3.5">
-          <h2 className="text-[16px] font-semibold">{title}</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="rounded p-1 text-ink-muted hover:bg-[#f0f0f0]">
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(31,42,55,0.52)] p-6"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="hs-pop flex max-h-full flex-col overflow-hidden rounded-[4px] border border-[#cbd6e2] bg-white shadow-[0_20px_54px_rgba(31,42,55,0.32)]"
+        style={{ width }}
+        data-testid={testId}
+      >
+        <header
+          className={cx(
+            "flex items-center justify-between px-5 py-3.5",
+            headerTone === "hubspot"
+              ? "hs-drawer-header text-white"
+              : "border-b border-[#dfe3eb] bg-white text-[#33475b]",
+          )}
+        >
+          <div className="min-w-0">
+            <h2 className={cx("text-[16px] font-semibold", headerTone === "hubspot" ? "!text-white" : "text-[#33475b]")}>
+              {title}
+            </h2>
+            {subtitle ? (
+              <p className={cx("mt-0.5 text-[12px]", headerTone === "hubspot" ? "text-white/85" : "text-[#516f90]")}>{subtitle}</p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className={cx(
+              "rounded p-1",
+              headerTone === "hubspot" ? "text-white/85 hover:bg-white/15 hover:text-white" : "text-[#516f90] hover:bg-[#eaf0f6]",
+            )}
+          >
             <Icon name="close" size={18} />
           </button>
         </header>
-        <div className="hs-scroll min-h-0 overflow-y-auto px-5 py-4">{children}</div>
-        {footer ? <footer className="flex items-center justify-end gap-2 border-t border-line-soft bg-[#fafafa] px-5 py-3">{footer}</footer> : null}
+        <div className="hs-scroll min-h-0 overflow-y-auto px-6 py-5 text-[#33475b]">{children}</div>
+        {footer ? (
+          <footer className="flex items-center justify-end gap-2 border-t border-[#dfe3eb] bg-[#f5f8fa] px-6 py-3">
+            {footer}
+          </footer>
+        ) : null}
       </div>
     </div>
   );
 }
 
-/** One property on a record's left column or a preview panel. */
-export function Prop({ label, children }: { label: string; children: React.ReactNode }) {
+/** Authentic HubSpot Right Slide-Over Drawer (used for Create Record, Record Preview, and Lead Workspace). */
+export function Drawer({
+  title,
+  subtitle,
+  headerRight,
+  children,
+  footer,
+  onClose,
+  width = 480,
+  testId,
+  backdrop = true,
+}: {
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  headerRight?: React.ReactNode;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  onClose: () => void;
+  width?: number;
+  testId?: string;
+  backdrop?: boolean;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
-    <div className="py-1.5">
-      <dt className="text-[12px] text-ink-muted">{label}</dt>
-      <dd className="mt-0.5 min-h-5 break-words text-[13.5px]">{children || <span className="text-[#9a9a9a]">--</span>}</dd>
+    <div
+      className={cx(
+        "fixed inset-0 z-[78] flex justify-end",
+        backdrop ? "bg-[rgba(31,42,55,0.34)]" : "pointer-events-none",
+      )}
+      onMouseDown={(e) => backdrop && e.target === e.currentTarget && onClose()}
+    >
+      <aside
+        role="dialog"
+        aria-modal={backdrop}
+        data-testid={testId}
+        style={{ width }}
+        className="hs-drawer-panel pointer-events-auto flex h-full max-w-full flex-col border-l border-[#cbd6e2] bg-white shadow-[-10px_0_32px_rgba(31,42,55,0.2)]"
+      >
+        <header className="hs-drawer-header flex shrink-0 items-center justify-between gap-3 px-5 py-3.5">
+          <div className="min-w-0">
+            <h2 className="truncate text-[16px] font-semibold !text-white">{title}</h2>
+            {subtitle ? <p className="mt-0.5 truncate text-[12px] text-white/85">{subtitle}</p> : null}
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {headerRight}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close drawer"
+              className="rounded p-1 text-white/90 hover:bg-white/15 hover:text-white"
+            >
+              <Icon name="close" size={18} />
+            </button>
+          </div>
+        </header>
+        <div className="hs-scroll min-h-0 flex-1 overflow-y-auto px-6 py-5 text-[#33475b]">{children}</div>
+        {footer ? (
+          <footer className="flex shrink-0 items-center justify-start gap-2 border-t border-[#dfe3eb] bg-[#f5f8fa] px-6 py-3.5">
+            {footer}
+          </footer>
+        ) : null}
+      </aside>
+    </div>
+  );
+}
+
+/** One property on a HubSpot record's left column or preview drawer (with optional hover-reveal inline edit). */
+export function Prop({
+  label,
+  children,
+  editable,
+  onEditClick,
+}: {
+  label: string;
+  children: React.ReactNode;
+  editable?: boolean;
+  onEditClick?: () => void;
+}) {
+  return (
+    <div className="group/prop relative border-b border-[#eaf0f6] py-2 last:border-b-0">
+      <dt className="flex items-center justify-between text-[11.5px] font-medium text-[#516f90]">
+        <span>{label}</span>
+        {editable && onEditClick ? (
+          <button
+            type="button"
+            onClick={onEditClick}
+            title={`Edit ${label}`}
+            className="opacity-0 transition-opacity group-hover/prop:opacity-100 text-[#0091ae] hover:text-[#007a8c]"
+          >
+            <Icon name="edit" size={12} />
+          </button>
+        ) : null}
+      </dt>
+      <dd className="mt-0.5 min-h-[19px] break-words text-[13px] text-[#33475b]">
+        {children || <span className="text-[#7c98b6]">--</span>}
+      </dd>
     </div>
   );
 }
 
 export function Empty({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1 px-6 py-12 text-center">
-      <p className="text-[15px] font-semibold">{title}</p>
-      {children ? <p className="max-w-md text-[13.5px] text-ink-muted">{children}</p> : null}
+    <div className="flex flex-col items-center justify-center gap-1.5 px-6 py-12 text-center">
+      <p className="text-[14.5px] font-semibold text-[#33475b]">{title}</p>
+      {children ? <p className="max-w-md text-[13px] text-[#516f90]">{children}</p> : null}
     </div>
   );
 }
 
-/** The Breeze "AI" pill, as HubSpot marks generated content. */
+/** HubSpot Breeze AI badge */
 export function AiPill() {
   return (
-    <span className="inline-flex h-[20px] items-center gap-1 rounded-full px-2 text-[10.5px] font-bold tracking-wide text-white" style={{ background: "linear-gradient(90deg,#ee255c,#db0f7a)" }}>
-      <svg viewBox="0 0 24 24" width={10} height={10} fill="currentColor" aria-hidden="true">
-        <path d="M12 2c.8 5.800 3.400 8.400 10 10-6.600 1.600-9.200 4.200-10 10-.800-5.800-3.400-8.400-10-10 6.600-1.600 9.200-4.200 10-10Z" />
-      </svg>
-      AI
+    <span
+      className="inline-flex h-[19px] items-center gap-1 rounded-[3px] px-1.5 text-[10px] font-bold tracking-wide text-white"
+      style={{ background: "linear-gradient(90deg,#d91b60,#7b2cbf)" }}
+    >
+      <Icon name="sparkle" size={10} />
+      Breeze AI
     </span>
   );
 }
 
 export function Toast({ children }: { children: React.ReactNode }) {
   return (
-    <div role="status" className="hs-pop pointer-events-none fixed left-1/2 top-16 z-[85] -translate-x-1/2 rounded-[8px] bg-[#0b5b2b] px-4 py-2.5 text-[13.5px] font-semibold text-white shadow-lg">
+    <div
+      role="status"
+      className="hs-pop pointer-events-none fixed left-1/2 top-14 z-[85] -translate-x-1/2 rounded-[4px] border border-[#00a4bd] bg-[#1f2a37] px-4 py-2.5 text-[13px] font-medium text-white shadow-lg"
+    >
       {children}
     </div>
   );
