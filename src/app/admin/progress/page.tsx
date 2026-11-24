@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TenantLogo } from "@/components/tenant-logo";
 import { requireAdmin, resolveActiveTenant } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AMICO_DIVISIONS, getTenantTracks } from "@/tenants/catalog";
@@ -68,11 +69,20 @@ export default async function CompletionMatrixPage({ searchParams }: PageProps<"
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-[24px] font-semibold tracking-tight">{activeTenant.name} — Learner completion matrix</h1>
-        <p className="mt-1 text-[13.5px] text-[#5f5b73]">
-          Module-by-module completion status, furthest step reached, and guided &ldquo;Show me&rdquo; usage across divisions and tracks.
-        </p>
+      <div className="flex flex-wrap items-center gap-3.5">
+        <TenantLogo
+          tenantSlug={activeTenant.slug}
+          tenantName={activeTenant.name}
+          mode="mark"
+          height={36}
+          testId="admin-progress-tenant-mark"
+        />
+        <div>
+          <h1 className="text-[24px] font-semibold tracking-tight">{activeTenant.name} — Learner completion matrix</h1>
+          <p className="mt-0.5 text-[13.5px] text-[#5f5b73]">
+            Module-by-module completion status, furthest step reached, and guided &ldquo;Show me&rdquo; usage across divisions and tracks.
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -147,8 +157,13 @@ export default async function CompletionMatrixPage({ searchParams }: PageProps<"
               {learnerSummaries.map(({ user: u, progByKey, completedReq, totalReq }) => (
                 <tr key={u.id} className="border-t border-[#eeecf5]" data-testid={`matrix-row-${u.email}`}>
                   <td className={cell}>
-                    {u.name ? <div className="font-medium">{u.name}</div> : null}
-                    <Clip className={muted}>{u.email}</Clip>
+                    <div className="flex items-start gap-2.5">
+                      <TenantLogo tenantSlug={activeTenant.slug} tenantName={activeTenant.name} mode="mark" height={20} className="mt-0.5 shrink-0" />
+                      <div className="min-w-0">
+                        {u.name ? <div className="font-medium">{u.name}</div> : null}
+                        <Clip className={muted}>{u.email}</Clip>
+                      </div>
+                    </div>
                   </td>
                   <td className={cell}>
                     <div className="font-medium">{u.division ?? "All Divisions"}</div>

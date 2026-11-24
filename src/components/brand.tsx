@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { HUBSPOT_SPROCKET_PATH, HUBSPOT_SPROCKET_VIEWBOX, PENGUIN_MARK_PATHS, PENGUIN_MARK_VIEWBOX } from "./brand-paths";
+import { TenantLogo } from "./tenant-logo";
 
 export function HubSpotSprocket({ size = 24, className }: { size?: number; className?: string }) {
   return (
@@ -35,22 +36,26 @@ export function PenguinMark({ size = 14, className }: { size?: number; className
 
 /** Co-branded Tenant × HubSpot × Penguin Strategies lockup for signed-in Training Launchpad. */
 export function TenantLockup({
+  tenantSlug = "amico",
   tenantName,
   accentColor = "#0b6e6e",
   height = 28,
 }: {
+  tenantSlug?: string;
   tenantName: string;
   accentColor?: string;
   height?: number;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3.5" data-testid="tenant-lockup">
-      <span
-        className="inline-flex items-center gap-2 rounded-[7px] px-3 py-1 font-penguin text-[14px] font-semibold tracking-wide text-white"
-        style={{ background: accentColor }}
-      >
-        {tenantName}
-      </span>
+      <TenantLogo
+        tenantSlug={tenantSlug}
+        tenantName={tenantName}
+        accentColor={accentColor}
+        mode="full"
+        height={Math.round(height * 1.15)}
+        testId="launchpad-tenant-logo"
+      />
       <span className="text-[13px] font-semibold text-ink-muted" aria-hidden="true">
         ×
       </span>

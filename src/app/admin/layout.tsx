@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PenguinLogo } from "@/components/brand";
+import { TenantLogo } from "@/components/tenant-logo";
 import { requireAdmin, resolveActiveTenant } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { switchActiveTenantAction } from "@/app/launchpad/actions";
@@ -20,7 +21,17 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
     <div className="min-h-screen bg-[#f6f5fb] font-penguin text-[#16122b]">
       <header className="border-b border-[#e4e2ee] bg-white">
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center gap-4 px-6 py-3">
-          <PenguinLogo height={30} />
+          {activeTenant ? (
+            <TenantLogo
+              tenantSlug={activeTenant.slug}
+              tenantName={activeTenant.name}
+              mode="full"
+              height={26}
+              testId="admin-header-tenant-logo"
+            />
+          ) : null}
+          {activeTenant ? <span className="h-5 w-px bg-[#e4e2ee]" aria-hidden="true" /> : null}
+          <PenguinLogo height={24} />
           <span className="rounded bg-penguin-soft px-2 py-0.5 text-[12px] font-semibold text-penguin">
             {user.role === "PENGUIN_ADMIN" ? "Penguin Super-Admin" : `${activeTenant?.name ?? "Client"} Admin`}
           </span>

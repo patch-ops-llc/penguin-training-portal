@@ -40,7 +40,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const ssoAvailable = env.googleEnabled || env.microsoftEnabled;
 
   return (
-    <AuthCard title="Sign in" description="Use the work email your invitation was sent to.">
+    <AuthCard
+      title="Sign in"
+      description="Sign in with your invited AMICO or organization work email to open your HubSpot training sandbox."
+    >
       {sent ? (
         <div className="space-y-4">
           <p className="rounded-md border border-[#e4e2ee] bg-[#f6f5fb] p-4 text-[13.5px]">

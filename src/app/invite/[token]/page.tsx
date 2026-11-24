@@ -25,8 +25,20 @@ export default async function InvitePage({ params, searchParams }: PageProps<"/i
     redirect("/launchpad");
   }
 
+  const inviteTenantSlug = lookup.ok && lookup.tenant ? lookup.tenant.slug : "amico";
+  const inviteTenantName = lookup.ok && lookup.tenant ? lookup.tenant.name : "AMICO";
+
   return (
-    <AuthCard title="Set up your account" description={lookup.ok ? "You have been invited to the Penguin Training Portal. Choose a password to finish." : undefined}>
+    <AuthCard
+      title="Set up your account"
+      tenantSlug={inviteTenantSlug}
+      tenantName={inviteTenantName}
+      description={
+        lookup.ok
+          ? `You have been invited to the ${inviteTenantName} HubSpot Training Portal. Choose a password to finish.`
+          : undefined
+      }
+    >
       {lookup.ok ? (
         <div className="space-y-4">
           {ssoAvailable ? (
