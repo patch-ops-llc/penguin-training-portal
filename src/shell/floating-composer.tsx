@@ -99,7 +99,7 @@ export function FloatingComposer({
       data-testid="floating-composer"
     >
       {/* HubSpot Dark Slate Composer Title Bar */}
-      <header className="flex h-10 items-center justify-between bg-[#253342] px-3.5 text-white">
+      <header className="flex h-10 items-center justify-between bg-[#333333] px-3.5 text-white">
         <div className="flex min-w-0 items-center gap-2">
           <Icon name={activeTab.icon} size={14} className="shrink-0 text-[#7fd1de]" />
           <span className="truncate text-[13px] font-semibold">
@@ -300,13 +300,13 @@ export function FloatingComposer({
                 <button
                   type="button"
                   onClick={() => setText((prev) => `${prev ? `${prev} ` : ""}@Marcus Alvarez `)}
-                  className="rounded-[3px] border border-[#cbd6e2] bg-[#f5f8fa] px-2 py-0.5 font-semibold text-[#0091ae] hover:bg-[#e5f5f8]"
+                  className="rounded-[3px] border border-[#cbd6e2] bg-[#f5f8fa] px-2 py-0.5 font-semibold text-[#006162] hover:bg-[#e6f7f7]"
                 >
                   @ Mention teammate
                 </button>
                 <span className="text-[#7c98b6]">B · I · U · Link · Snippet</span>
               </div>
-              <span className="font-medium text-[#0091ae]">
+              <span className="font-medium text-[#006162]">
                 Associated with {assocCount} record{assocCount === 1 ? "" : "s"}
               </span>
             </div>

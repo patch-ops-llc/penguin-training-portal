@@ -14,6 +14,7 @@ import {
   TicketsIndex,
   WorkflowsIndex,
 } from "./pages/lists";
+import { AddressesIndex, AddressRecord } from "./pages/addresses";
 import { ProfilePage } from "./pages/profile";
 import { ProjectRecord, ProjectsIndex } from "./pages/projects";
 import { QuotePage } from "./pages/quote";
@@ -38,6 +39,8 @@ export function Routes() {
       return <TicketsIndex />;
     case "projects":
       return id ? <ProjectRecord id={id} /> : <ProjectsIndex />;
+    case "addresses":
+      return id ? <AddressRecord id={id} /> : <AddressesIndex />;
     case "epicor-quotes":
       return id ? <EpicorQuoteRecord id={id} /> : <EpicorQuotesIndex />;
     case "segments":

@@ -114,7 +114,7 @@ export function ShellApp({
   }
 
   if (!loaded || loaded.trackId !== trackId) {
-    return <div className="hs-app h-screen bg-[#1f2a37]" data-testid="shell-loading" />;
+    return <div className="hs-app h-screen bg-[#333333]" data-testid="shell-loading" />;
   }
 
   return (

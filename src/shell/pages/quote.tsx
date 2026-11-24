@@ -78,7 +78,7 @@ export function QuotePage({ id }: { id: string }) {
 
       <div className="mx-auto max-w-[1140px] space-y-4 px-6 py-5">
         {/* AMICO Quoting Decision Tree Distinction Banner */}
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[4px] border border-[#99d6e2] bg-[#e5f5f8] px-4 py-2.5 text-[12.5px] text-[#00677d]">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[4px] border border-[#99d6e2] bg-[#e6f7f7] px-4 py-2.5 text-[12.5px] text-[#00494b]">
           <span>
             <strong>Native HubSpot Quote (Commerce Hub):</strong> Used for Oracle-migrated SKU catalogs &amp; buyer e-signature. For ERP-engineered orders, inspect read-only{" "}
             <A to="/epicor-quotes" className="font-bold underline">
@@ -94,7 +94,7 @@ export function QuotePage({ id }: { id: string }) {
             {/* Buyer-Facing HubSpot Quote Sheet Preview */}
             <div className="overflow-hidden rounded-[4px] border border-[#cbd6e2] bg-white shadow-[0_8px_28px_rgba(31,42,55,0.08)]">
               {/* Branded AMICO Document Header Band */}
-              <div className="flex flex-wrap items-start justify-between gap-4 bg-[#1f2a37] px-7 py-6 text-white">
+              <div className="flex flex-wrap items-start justify-between gap-4 bg-[#333333] px-7 py-6 text-white">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#7fd1de]">
                     AMICO · Alabama Metal Industries Corporation
@@ -121,7 +121,7 @@ export function QuotePage({ id }: { id: string }) {
                       {buyer.firstName} {buyer.lastName} · {buyer.title}
                     </p>
                   ) : null}
-                  {buyer ? <p className="text-[#0091ae]">{buyer.email}</p> : null}
+                  {buyer ? <p className="text-[#006162]">{buyer.email}</p> : null}
                 </div>
                 <div>
                   <p className="text-[10.5px] font-bold uppercase tracking-wider text-[#516f90]">Prepared By</p>

@@ -47,15 +47,15 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 export function Button({ variant = "secondary", size = "md", icon, className, children, ...rest }: ButtonProps) {
   const styles = {
     primary:
-      "border border-[#ff5c35] bg-[#ff5c35] text-white hover:border-[#e84b27] hover:bg-[#e84b27] disabled:border-[#dfe3eb] disabled:bg-[#eaf0f6] disabled:text-[#7c98b6]",
+      "rounded-[999px] border border-[#00494b] bg-[#00494b] px-4 text-white hover:border-[#003a3b] hover:bg-[#003a3b] disabled:border-[#dfe3eb] disabled:bg-[#eaf0f6] disabled:text-[#7c98b6]",
     secondary:
       "border border-[#cbd6e2] bg-white text-[#33475b] hover:bg-[#eaf0f6] hover:border-[#99acc2] disabled:border-[#dfe3eb] disabled:bg-[#f5f8fa] disabled:text-[#7c98b6]",
     ghost:
-      "border border-transparent bg-transparent text-[#0091ae] hover:bg-[#e5f5f8] hover:text-[#007a8c] disabled:text-[#7c98b6]",
+      "border border-transparent bg-transparent text-[#006162] hover:bg-[#e6f7f7] hover:text-[#00494b] disabled:text-[#7c98b6]",
     breeze:
       "border border-[#cbd6e2] bg-white text-[#b01b68] hover:bg-[#fdebf3] disabled:opacity-50",
     dark:
-      "border border-[#33475b] bg-[#33475b] text-white hover:bg-[#253342] disabled:border-[#dfe3eb] disabled:bg-[#eaf0f6] disabled:text-[#7c98b6]",
+      "border border-[#33475b] bg-[#33475b] text-white hover:bg-[#333333] disabled:border-[#dfe3eb] disabled:bg-[#eaf0f6] disabled:text-[#7c98b6]",
   }[variant];
 
   const sz =
@@ -110,7 +110,7 @@ export function Card({
             <button
               type="button"
               onClick={() => setOpen((o) => !o)}
-              className="flex min-w-0 items-center gap-1.5 text-left text-[13.5px] font-semibold text-[#33475b] hover:text-[#0091ae]"
+              className="flex min-w-0 items-center gap-1.5 text-left text-[13.5px] font-semibold text-[#33475b] hover:text-[#006162]"
             >
               <Icon name={open ? "chevronDown" : "chevronRight"} size={14} className="shrink-0 text-[#516f90]" />
               <span className="truncate">{title}</span>
@@ -131,7 +131,7 @@ const TONES = {
   green: "bg-[#e5f8f6] text-[#006c5f] border border-[#99e2d8]",
   amber: "bg-[#fef6e7] text-[#8a5300] border border-[#f5c26b]",
   red: "bg-[#fdecee] text-[#b0232a] border border-[#f7b2b6]",
-  blue: "bg-[#e5f5f8] text-[#00677d] border border-[#99d6e2]",
+  blue: "bg-[#e6f7f7] text-[#00494b] border border-[#99d6e2]",
   teal: "bg-[#e5f8f6] text-[#006c5f] border border-[#99e2d8]",
   orange: "bg-[#fff1ed] text-[#b83718] border border-[#ffbfa8]",
   purple: "bg-[#f1eeff] text-[#4c32b7] border border-[#cfc4ff]",
@@ -199,7 +199,7 @@ export function Avatar({ name, color = "#516f90", size = 26 }: { name: string; c
   );
 }
 
-const PALETTE = ["#0091ae", "#516f90", "#6a4c93", "#00a4bd", "#d95f02", "#3b6fb6", "#7a5195", "#2d7d6f"];
+const PALETTE = ["#006162", "#516f90", "#6a4c93", "#00a4bd", "#d95f02", "#3b6fb6", "#7a5195", "#2d7d6f"];
 export function colorFor(key: string): string {
   let hash = 0;
   for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
@@ -395,12 +395,12 @@ export function MenuItem({
       data-testid={testId}
       className={cx(
         "flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left text-[13px]",
-        disabled ? "text-[#7c98b6]" : "text-[#33475b] hover:bg-[#e5f5f8]",
+        disabled ? "text-[#7c98b6]" : "text-[#33475b] hover:bg-[#e6f7f7]",
         active && "bg-[#eaf0f6] font-semibold",
       )}
     >
       <span className="min-w-0">{children}</span>
-      {right ?? (active ? <Icon name="check" size={14} className="text-[#0091ae]" /> : null)}
+      {right ?? (active ? <Icon name="check" size={14} className="text-[#006162]" /> : null)}
     </button>
   );
 }
@@ -576,7 +576,7 @@ export function Prop({
             type="button"
             onClick={onEditClick}
             title={`Edit ${label}`}
-            className="opacity-0 transition-opacity group-hover/prop:opacity-100 text-[#0091ae] hover:text-[#007a8c]"
+            className="opacity-0 transition-opacity group-hover/prop:opacity-100 text-[#006162] hover:text-[#00494b]"
           >
             <Icon name="edit" size={12} />
           </button>
@@ -615,7 +615,7 @@ export function Toast({ children }: { children: React.ReactNode }) {
   return (
     <div
       role="status"
-      className="hs-pop pointer-events-none fixed left-1/2 top-14 z-[85] -translate-x-1/2 rounded-[4px] border border-[#00a4bd] bg-[#1f2a37] px-4 py-2.5 text-[13px] font-medium text-white shadow-lg"
+      className="hs-pop pointer-events-none fixed left-1/2 top-14 z-[85] -translate-x-1/2 rounded-[4px] border border-[#00a4bd] bg-[#333333] px-4 py-2.5 text-[13px] font-medium text-white shadow-lg"
     >
       {children}
     </div>

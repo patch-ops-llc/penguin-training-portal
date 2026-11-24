@@ -154,7 +154,7 @@ export function EpicorQuoteRecord({ id }: { id: string }) {
             </div>
             <div className="rounded-[3px] bg-[#f5f8fa] p-2.5">
               <p className="text-[11px] font-semibold uppercase text-[#516f90]">ERP Source</p>
-              <p className="mt-1 text-[13px] font-bold text-[#0091ae]">{eq.sourceSystem}</p>
+              <p className="mt-1 text-[13px] font-bold text-[#006162]">{eq.sourceSystem}</p>
             </div>
             <div className="rounded-[3px] bg-[#f5f8fa] p-2.5">
               <p className="text-[11px] font-semibold uppercase text-[#516f90]">Customer PO</p>

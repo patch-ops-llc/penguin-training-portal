@@ -14,6 +14,11 @@ import { StagePromptModal } from "./stage-prompt-modal";
 const COMPANY_ROLE_LABELS = ["General Contractor", "A/E Firm", "Project Owner", "Distributor", "Subcontractor"];
 const CONTACT_ROLE_LABELS = ["Decision Maker", "Quote Recipient", "Estimator / Buyer", "Billing Contact", "Project Superintendent"];
 
+function erpOracleCustomerIdFromCompany(company: { erp?: { accountNumber: string } }) {
+  if (!company.erp?.accountNumber) return "—";
+  return company.erp.accountNumber.split("/")[0]?.trim() ?? "—";
+}
+
 const QUICK_ACTIONS: { id: ComposerKind; label: string; icon: IconName }[] = [
   { id: "note", label: "Note", icon: "note" },
   { id: "email", label: "Email", icon: "email" },
@@ -96,7 +101,7 @@ function CollapsibleLeftGroup({
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="flex items-center gap-1.5 text-left text-[12.5px] font-bold text-[#33475b] hover:text-[#0091ae]"
+          className="flex items-center gap-1.5 text-left text-[12.5px] font-bold text-[#33475b] hover:text-[#006162]"
         >
           <Icon name={open ? "chevronDown" : "chevronRight"} size={14} className="text-[#516f90]" />
           <span>{title}</span>
@@ -128,7 +133,7 @@ function AssocHeader({
       <button
         type="button"
         onClick={onToggle}
-        className="flex items-center gap-1.5 text-left text-[13px] font-bold text-[#33475b] hover:text-[#0091ae]"
+        className="flex items-center gap-1.5 text-left text-[13px] font-bold text-[#33475b] hover:text-[#006162]"
       >
         <Icon name={open ? "chevronDown" : "chevronRight"} size={14} className="text-[#516f90]" />
         <span>
@@ -139,7 +144,7 @@ function AssocHeader({
         <button
           type="button"
           onClick={onAdd}
-          className="text-[12px] font-semibold text-[#0091ae] hover:text-[#007a8c] hover:underline"
+          className="text-[12px] font-semibold text-[#006162] hover:text-[#00494b] hover:underline"
         >
           {addLabel}
         </button>
@@ -243,7 +248,7 @@ function ActivityTimelinePane({
           <button
             type="button"
             onClick={() => setCollapsedAll((c) => !c)}
-            className="text-[12px] font-semibold text-[#0091ae] hover:underline"
+            className="text-[12px] font-semibold text-[#006162] hover:underline"
           >
             {collapsedAll ? "Expand all" : "Collapse all"}
           </button>
@@ -293,7 +298,7 @@ function ActivityTimelinePane({
                 <article className="rounded-[4px] border border-[#dfe3eb] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(51,71,91,0.04)]">
                   <header className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2.5">
-                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#e5f5f8] text-[#0091ae]">
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#e6f7f7] text-[#006162]">
                         <Icon name={iconName} size={14} />
                       </span>
                       <div>
@@ -322,7 +327,7 @@ function ActivityTimelinePane({
                             <select
                               value={callOutcomes[act.id] ?? "Connected"}
                               onChange={(e) => setCallOutcomes((prev) => ({ ...prev, [act.id]: e.target.value }))}
-                              className="rounded border border-[#cbd6e2] bg-white px-1.5 py-0.5 text-[11.5px] font-semibold text-[#0091ae]"
+                              className="rounded border border-[#cbd6e2] bg-white px-1.5 py-0.5 text-[11.5px] font-semibold text-[#006162]"
                             >
                               <option value="Connected">Connected</option>
                               <option value="Left voicemail">Left voicemail</option>
@@ -363,7 +368,7 @@ function ActivityTimelinePane({
                             type="checkbox"
                             checked={matchedTask.status === "done"}
                             onChange={() => dispatch({ t: "task.toggle", id: matchedTask.id })}
-                            className="accent-[#0091ae]"
+                            className="accent-[#006162]"
                           />
                           <span className={cx("font-semibold", matchedTask.status === "done" && "line-through text-[#7c98b6]")}>
                             {matchedTask.title}
@@ -454,14 +459,14 @@ export function ContactRecord({ id }: { id: string }) {
                 <button
                   type="button"
                   onClick={() => setEditingTitle((e) => !e)}
-                  className="text-[#0091ae] opacity-0 group-hover:opacity-100"
+                  className="text-[#006162] opacity-0 group-hover:opacity-100"
                   title="Edit contact"
                 >
                   <Icon name="edit" size={13} />
                 </button>
               </div>
               <p className="truncate text-[12.5px] text-[#516f90]">{effectiveTitle}</p>
-              <p className="truncate text-[12px] text-[#0091ae]">{contact.email}</p>
+              <p className="truncate text-[12px] text-[#006162]">{contact.email}</p>
             </div>
           </div>
 
@@ -582,7 +587,7 @@ export function ContactRecord({ id }: { id: string }) {
                   </div>
                   <div className="rounded-[3px] bg-[#f5f8fa] p-2.5">
                     <p className="text-[11px] font-semibold uppercase text-[#516f90]">Lead Status</p>
-                    <p className="mt-1 text-[13.5px] font-bold text-[#0091ae]">{effectiveStatus}</p>
+                    <p className="mt-1 text-[13.5px] font-bold text-[#006162]">{effectiveStatus}</p>
                   </div>
                   <div className="rounded-[3px] bg-[#f5f8fa] p-2.5">
                     <p className="text-[11px] font-semibold uppercase text-[#516f90]">Associated Deals</p>
@@ -765,7 +770,7 @@ export function CompanyRecord({ id }: { id: string }) {
             <Avatar name={company.name} color={colorFor(company.id)} size={42} />
             <div className="min-w-0 flex-1">
               <h1 className="text-[17.5px] font-bold leading-snug text-[#33475b]">{company.name}</h1>
-              <p className="mt-0.5 truncate text-[12px] text-[#0091ae]">{company.domain || "No domain on record"}</p>
+              <p className="mt-0.5 truncate text-[12px] text-[#006162]">{company.domain || "No domain on record"}</p>
               <div className="mt-1.5 flex flex-wrap gap-1">
                 <Tag tone="blue">{primaryDiv}</Tag>
                 {parentCompany ? <Tag tone="teal">Child Branch</Tag> : null}
@@ -776,6 +781,33 @@ export function CompanyRecord({ id }: { id: string }) {
 
           <QuickActionRow onSelect={(k) => setComposerKind(k)} />
         </div>
+
+        {company.crossDivision ? (
+          <CollapsibleLeftGroup title="Cross-Division Activity" defaultOpen testId="cross-division-left-card">
+            <dl>
+              <Prop label="Divisions active">
+                <span className="flex flex-wrap gap-1">
+                  {company.crossDivision.divisionsActive.map((divName) => (
+                    <span key={divName} className="hs-assoc-chip rounded px-1.5 py-0.5 text-[11px]">
+                      {divName}
+                    </span>
+                  ))}
+                </span>
+              </Prop>
+              <Prop label="Most recent active division">{company.crossDivision.mostRecentActiveDivision}</Prop>
+              <Prop label="Most recent division contact">{company.crossDivision.mostRecentDivisionContact}</Prop>
+              <Prop label="Last division activity">{shortDate(company.crossDivision.lastDivisionActivity)}</Prop>
+            </dl>
+          </CollapsibleLeftGroup>
+        ) : null}
+
+        <CollapsibleLeftGroup title="Key information" defaultOpen>
+          <dl>
+            <Prop label="Company owner">{owner?.name ?? company.ownerId ?? "—"}</Prop>
+            <Prop label="Street Address">{`${effectiveCity}, ${company.state}`}</Prop>
+            <Prop label="Customer Account # (Oracle)">{company.erp ? erpOracleCustomerIdFromCompany(company) : "—"}</Prop>
+          </dl>
+        </CollapsibleLeftGroup>
 
         <CollapsibleLeftGroup
           title="About this company"
@@ -948,7 +980,7 @@ export function CompanyRecord({ id }: { id: string }) {
                   </div>
                   <div className="rounded-[3px] bg-[#f5f8fa] p-2.5">
                     <p className="text-[11px] font-semibold uppercase text-[#516f90]">Divisions Active</p>
-                    <p className="mt-1 text-[13px] font-bold text-[#0091ae]">
+                    <p className="mt-1 text-[13px] font-bold text-[#006162]">
                       {company.crossDivision?.divisionsActive.length ?? 1} of 9
                     </p>
                   </div>
@@ -1006,7 +1038,7 @@ export function CompanyRecord({ id }: { id: string }) {
                     </div>
                     {restrictedDealCount > 0 ? (
                       <p className="mt-2.5 text-[11.5px] text-[#516f90]">
-                        <Icon name="shield" size={12} className="mr-1 inline text-[#0091ae]" />
+                        <Icon name="shield" size={12} className="mr-1 inline text-[#006162]" />
                         {restrictedDealCount} other-division deal{restrictedDealCount === 1 ? " is" : "s are"} hidden per {persona.division} team permissions — @mention {company.crossDivision.mostRecentDivisionContact} on a Note to coordinate.
                       </p>
                     ) : null}
@@ -1116,7 +1148,7 @@ export function CompanyRecord({ id }: { id: string }) {
                     {idx === 0 ? <Tag tone="blue">Primary</Tag> : null}
                   </div>
                   <p className="mt-0.5 text-[11.5px] text-[#516f90]">{c.title}</p>
-                  <p className="truncate text-[11.5px] text-[#0091ae]">{c.email}</p>
+                  <p className="truncate text-[11.5px] text-[#006162]">{c.email}</p>
                 </div>
               ))}
             </div>
@@ -1310,7 +1342,7 @@ export function DealRecord({ id }: { id: string }) {
                     const st = pipeline.stages.find((s) => s.id === e.target.value);
                     if (st) handleStageClick(st);
                   }}
-                  className="rounded border border-[#cbd6e2] bg-white px-2 py-0.5 text-[12px] font-semibold text-[#0091ae]"
+                  className="rounded border border-[#cbd6e2] bg-white px-2 py-0.5 text-[12px] font-semibold text-[#006162]"
                 >
                   {pipeline.stages.map((st) => {
                     const pct = st.probability > 0 && st.probability <= 1 ? Math.round(st.probability * 100) : Math.round(st.probability);
@@ -1343,7 +1375,7 @@ export function DealRecord({ id }: { id: string }) {
                         active
                           ? "bg-[#ff5c35] text-white"
                           : passed
-                            ? "bg-[#0091ae]/20 text-[#00677d] hover:bg-[#0091ae]/30"
+                            ? "bg-[#006162]/20 text-[#00494b] hover:bg-[#006162]/30"
                             : "bg-white text-[#516f90] border border-[#dfe3eb] hover:bg-[#eaf0f6]",
                         isReadOnly && "cursor-default",
                       )}
@@ -1607,7 +1639,7 @@ export function DealRecord({ id }: { id: string }) {
                   </div>
                   <div className="rounded-[3px] bg-[#f5f8fa] p-2.5">
                     <p className="text-[11px] font-semibold uppercase text-[#516f90]">Deal Stage</p>
-                    <p className="mt-1 truncate text-[13px] font-bold text-[#0091ae]">{currentStage?.label ?? deal.stage}</p>
+                    <p className="mt-1 truncate text-[13px] font-bold text-[#006162]">{currentStage?.label ?? deal.stage}</p>
                   </div>
                   <div className="rounded-[3px] bg-[#f5f8fa] p-2.5">
                     <p className="text-[11px] font-semibold uppercase text-[#516f90]">Close Date</p>
@@ -1621,6 +1653,26 @@ export function DealRecord({ id }: { id: string }) {
                   </div>
                 </div>
               </Card>
+
+              {deal.pipelineId === "security-fence" ? (
+                <>
+                  <Card title="Estimating Progress" testId="deal-estimating-progress-card">
+                    <dl className="grid grid-cols-2 gap-3 text-[13px]">
+                      <Prop label="Drawings Received">{deal.drawingsReceived ?? "—"}</Prop>
+                      <Prop label="Engineering Required">{deal.engineeringRequired ?? "—"}</Prop>
+                      <Prop label="Project / Handoff Required">{deal.handoffRequired ?? "—"}</Prop>
+                    </dl>
+                  </Card>
+                  <Card title="Quoting" testId="deal-quoting-card">
+                    <dl className="grid grid-cols-2 gap-3 text-[13px]">
+                      <Prop label="Quote Date">{deal.quoteDate ? shortDate(deal.quoteDate) : "—"}</Prop>
+                      <Prop label="Quoted Value">{money(deal.amount)}</Prop>
+                      <Prop label="Quote Number">{deal.quoteNumber ?? "—"}</Prop>
+                      <Prop label="Quoted Lead Time (weeks)">{deal.quotedLeadTimeWeeks ?? "—"}</Prop>
+                    </dl>
+                  </Card>
+                </>
+              ) : null}
 
               {/* Scheduled Open Tasks on Deal */}
               {openTasks.length > 0 ? (
@@ -1637,7 +1689,7 @@ export function DealRecord({ id }: { id: string }) {
                             checked={tk.status === "done"}
                             data-testid={`deal-task-check-${tk.id}`}
                             onChange={() => dispatch({ t: "task.toggle", id: tk.id })}
-                            className="accent-[#0091ae]"
+                            className="accent-[#006162]"
                           />
                           <span className="font-semibold text-[#33475b]">{tk.title}</span>
                         </span>
@@ -1905,7 +1957,7 @@ export function DealRecord({ id }: { id: string }) {
                             align="right"
                             width={195}
                             button={({ toggle }) => (
-                              <button type="button" onClick={toggle} className="text-[11px] font-semibold text-[#0091ae] hover:underline">
+                              <button type="button" onClick={toggle} className="text-[11px] font-semibold text-[#006162] hover:underline">
                                 + Add label
                               </button>
                             )}
@@ -1959,7 +2011,7 @@ export function DealRecord({ id }: { id: string }) {
                             type="button"
                             onClick={toggle}
                             data-testid={`add-contact-label-${ct.id}`}
-                            className="text-[11px] font-semibold text-[#0091ae] hover:underline"
+                            className="text-[11px] font-semibold text-[#006162] hover:underline"
                           >
                             + Role label
                           </button>
@@ -2068,7 +2120,7 @@ export function DealRecord({ id }: { id: string }) {
             <div className="mt-2 text-[12px] text-[#516f90]">
               {deal.externalQuotePdf ? (
                 <div className="flex items-center gap-2 rounded-[4px] border border-[#dfe3eb] bg-[#f5f8fa] p-2 text-[#33475b]">
-                  <Icon name="paperclip" size={14} className="shrink-0 text-[#0091ae]" />
+                  <Icon name="paperclip" size={14} className="shrink-0 text-[#006162]" />
                   <span className="truncate font-medium">{deal.externalQuotePdf}</span>
                 </div>
               ) : (

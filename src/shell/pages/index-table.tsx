@@ -160,10 +160,10 @@ export function IndexPage<T>({
                     type="button"
                     onClick={toggle}
                     data-testid="object-switcher"
-                    className="hs-heading inline-flex items-center gap-1.5 rounded-[3px] px-1 py-0.5 text-[20px] font-bold text-[#0091ae] hover:bg-[#e5f5f8]"
+                    className="hs-heading inline-flex items-center gap-1.5 rounded-[3px] px-1 py-0.5 text-[20px] font-bold text-[#006162] hover:bg-[#e6f7f7]"
                   >
                     <span>{objectSwitcherLabel}</span>
-                    <Icon name="chevronDown" size={16} className="text-[#0091ae]" />
+                    <Icon name="chevronDown" size={16} className="text-[#006162]" />
                   </button>
                 )}
               >
@@ -248,12 +248,12 @@ export function IndexPage<T>({
             <button
               type="button"
               onClick={() => setClosedTabIds([])}
-              className="mb-1 ml-2 text-[12px] font-semibold text-[#0091ae] hover:underline"
+              className="mb-1 ml-2 text-[12px] font-semibold text-[#006162] hover:underline"
             >
               All views ({views.length})
             </button>
           ) : (
-            <span className="mb-1.5 ml-3 text-[12px] font-medium text-[#0091ae]">All views</span>
+            <span className="mb-1.5 ml-3 text-[12px] font-medium text-[#006162]">All views</span>
           )}
         </div>
       </div>
@@ -402,7 +402,7 @@ export function IndexPage<T>({
           </div>
           {headerActions && toolbar ? toolbar : null}
           {selectedCount > 0 ? (
-            <div className="flex items-center gap-2 rounded-[3px] border border-[#99d6e2] bg-[#e5f5f8] px-2.5 py-1 text-[12px] font-medium text-[#00677d]">
+            <div className="flex items-center gap-2 rounded-[3px] border border-[#99d6e2] bg-[#e6f7f7] px-2.5 py-1 text-[12px] font-medium text-[#00494b]">
               <span>{selectedCount} selected</span>
               <button type="button" onClick={() => setSelectedKeys({})} className="font-semibold underline">
                 Clear
@@ -437,7 +437,7 @@ export function IndexPage<T>({
                         aria-label="Select all rows"
                         checked={allChecked}
                         onChange={toggleAll}
-                        className="accent-[#0091ae]"
+                        className="accent-[#006162]"
                       />
                     </th>
                     {columns.map((column, idx) => (
@@ -465,7 +465,7 @@ export function IndexPage<T>({
                               size={12}
                               className={cx(
                                 sort?.id === column.id && sort.dir === -1 && "rotate-180",
-                                sort?.id === column.id ? "text-[#0091ae]" : "opacity-55",
+                                sort?.id === column.id ? "text-[#006162]" : "opacity-55",
                               )}
                             />
                           </button>
@@ -493,7 +493,7 @@ export function IndexPage<T>({
                             aria-label={`Select row ${key}`}
                             checked={checked}
                             onChange={(e) => setSelectedKeys((prev) => ({ ...prev, [key]: e.target.checked }))}
-                            className="accent-[#0091ae]"
+                            className="accent-[#006162]"
                           />
                         </td>
                         {columns.map((column, i) => (
@@ -544,7 +544,7 @@ export function IndexPage<T>({
                 >
                   <Icon name="chevronLeft" size={13} /> Prev
                 </button>
-                <span className="inline-flex h-7 items-center rounded-[3px] border border-[#0091ae] bg-[#e5f5f8] px-2.5 font-semibold text-[#00677d]">
+                <span className="inline-flex h-7 items-center rounded-[3px] border border-[#006162] bg-[#e6f7f7] px-2.5 font-semibold text-[#00494b]">
                   1
                 </span>
                 <button
@@ -564,7 +564,7 @@ export function IndexPage<T>({
                   aria-label="Records per page"
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="hs-input !h-7 !bg-white !px-2 !text-[12px] font-semibold text-[#0091ae]"
+                  className="hs-input !h-7 !bg-white !px-2 !text-[12px] font-semibold text-[#006162]"
                 >
                   <option value={25}>25 per page</option>
                   <option value={50}>50 per page</option>
@@ -641,7 +641,7 @@ export function PreviewShell({
         <A
           to={to}
           onClick={onClose}
-          className="inline-flex h-8 items-center rounded-[3px] bg-[#ff5c35] px-3.5 text-[12.5px] font-semibold text-white hover:bg-[#e84b27]"
+          className="inline-flex h-8 items-center rounded-[999px] bg-[#00494b] px-4 text-[12.5px] font-semibold text-white hover:bg-[#003a3b]"
           data-testid="preview-view-record"
         >
           Open full record

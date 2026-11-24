@@ -15,7 +15,7 @@ export const AMICO_101_SCRIPTS: Record<string, TrainingScript> = {
       {
         id: "global-search",
         title: "Search HubSpot before creating any record",
-        hint: 'Type "Grading Pacific" in the top Search HubSpot bar to verify migrated Pipedrive/Epicor records.',
+        hint: 'Type "Grading Pacific" in the top Find in HubSpot bar to verify migrated Pipedrive/Epicor records.',
         path: () => "/contacts",
         done: (c) => has(c, "search.used"),
         script: () => [{ t: "search.query", q: "Grading Pacific" }],

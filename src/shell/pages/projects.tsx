@@ -159,7 +159,7 @@ export function ProjectsIndex() {
             value={pipelineId}
             onChange={(e) => setPipelineId(e.target.value as "project-pipeline" | "delivery-board")}
             data-testid="project-pipeline-select"
-            className="hs-input !h-8 !bg-white font-semibold text-[#0091ae]"
+            className="hs-input !h-8 !bg-white font-semibold text-[#006162]"
           >
             {pack.projectPipelines.map((pl) => (
               <option key={pl.id} value={pl.id}>
@@ -256,7 +256,7 @@ export function ProjectsIndex() {
                                 ) : null}
                               </div>
                               <div className="flex items-center gap-1.5 border-t border-[#eaf0f6] bg-[#f5f8fa] px-3 py-1.5 text-[11px] text-[#516f90]">
-                                <Icon name="task" size={12} className="text-[#0091ae]" />
+                                <Icon name="task" size={12} className="text-[#006162]" />
                                 <span className="truncate">
                                   {openMilestones[0] ? `Next: ${openMilestones[0].title}` : "All milestones complete"}
                                 </span>
@@ -366,7 +366,7 @@ export function ProjectRecord({ id }: { id: string }) {
                   value={activePipeline}
                   onChange={(e) => setActivePipeline(e.target.value as "project-pipeline" | "delivery-board")}
                   data-testid="project-record-pipeline-select"
-                  className="hs-input mt-1 !h-7 w-full !bg-white !text-[12px] font-semibold text-[#0091ae]"
+                  className="hs-input mt-1 !h-7 w-full !bg-white !text-[12px] font-semibold text-[#006162]"
                 >
                   {pack.projectPipelines.map((pl) => (
                     <option key={pl.id} value={pl.id}>
@@ -400,7 +400,7 @@ export function ProjectRecord({ id }: { id: string }) {
                         st.id === currentStageId
                           ? "bg-[#ff5c35] text-white"
                           : passed
-                            ? "bg-[#0091ae]/20 text-[#00677d]"
+                            ? "bg-[#006162]/20 text-[#00494b]"
                             : "border border-[#dfe3eb] bg-white text-[#516f90]",
                         !canEdit && "cursor-default",
                       )}
@@ -556,7 +556,7 @@ export function ProjectRecord({ id }: { id: string }) {
                                     at: nowMs(),
                                   })
                                 }
-                                className="accent-[#0091ae]"
+                                className="accent-[#006162]"
                               />
                               <span className={cx("text-[#33475b]", task.done && "line-through text-[#7c98b6]")}>{task.title}</span>
                             </label>
@@ -583,7 +583,7 @@ export function ProjectRecord({ id }: { id: string }) {
               {activities.map((act) => (
                 <Card key={act.id}>
                   <div className="flex items-center justify-between text-[11.5px] text-[#516f90]">
-                    <span className="font-bold uppercase text-[#0091ae]">{act.type}</span>
+                    <span className="font-bold uppercase text-[#006162]">{act.type}</span>
                     <span>{date(act.at)}</span>
                   </div>
                   <p className="mt-1 text-[13.5px] font-semibold text-[#33475b]">{act.title}</p>

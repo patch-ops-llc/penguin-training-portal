@@ -17,21 +17,41 @@ const BOOKMARKS: { to: string; label: string; icon: IconName }[] = [
   { to: "/companies", label: "Companies", icon: "company" },
 ];
 
+/** AMICO live CRM flyout order (Hub ID 44592643 crawl). */
+const CRM_NAV_ITEMS: NavItem[] = [
+  { to: "/contacts", label: "Contacts", icon: "contacts", testId: "nav-contacts" },
+  { to: "/companies", label: "Companies", icon: "company", testId: "nav-companies" },
+  { to: "/leads", label: "Leads", icon: "target", testId: "nav-leads" },
+  { to: "/deals", label: "Deals", icon: "deal", testId: "nav-deals" },
+  { to: "/tickets", label: "Tickets", icon: "ticket", testId: "nav-tickets" },
+  { to: "/products", label: "Products", icon: "product", testId: "nav-products" },
+  { to: "/quotes", label: "Orders", icon: "quote", testId: "nav-orders" },
+  { to: "/projects", label: "Projects", icon: "project", testId: "nav-projects" },
+  { to: "/addresses", label: "Addresses", icon: "company", testId: "nav-addresses" },
+  { to: "/epicor-quotes", label: "Epicor Quotes", icon: "file", testId: "nav-epicor-quotes" },
+  { to: "/segments", label: "Segments (Lists)", icon: "segments", testId: "nav-segments" },
+  { to: "/tasks", label: "Inbox", icon: "inbox", testId: "nav-inbox" },
+  { to: "/tasks", label: "Calls", icon: "call", testId: "nav-calls" },
+  { to: "/tasks", label: "Meetings", icon: "meeting", testId: "nav-meetings" },
+  { to: "/tasks", label: "Tasks", icon: "task", testId: "nav-tasks" },
+  { to: "/workflows", label: "Playbooks", icon: "workflow", testId: "nav-playbooks" },
+  { to: "/workflows", label: "Message Templates", icon: "email", testId: "nav-message-templates" },
+  { to: "/workflows", label: "Snippets", icon: "note", testId: "nav-snippets" },
+];
+
 const HUBSPOT_NAV: NavGroup[] = [
+  { id: "crm", group: "CRM", icon: "contacts", items: CRM_NAV_ITEMS },
   {
-    id: "crm",
-    group: "CRM",
-    icon: "contacts",
-    items: [
-      { to: "/contacts", label: "Contacts", icon: "contacts", testId: "nav-contacts" },
-      { to: "/companies", label: "Companies", icon: "company", testId: "nav-companies" },
-      { to: "/deals", label: "Deals", icon: "deal", testId: "nav-deals" },
-      { to: "/tickets", label: "Tickets", icon: "ticket", testId: "nav-tickets" },
-      { to: "/leads", label: "Leads", icon: "target", testId: "nav-leads" },
-      { to: "/segments", label: "Lists / Segments", icon: "segments", testId: "nav-segments" },
-      { to: "/epicor-quotes", label: "Epicor Quotes", icon: "file", testId: "nav-epicor-quotes" },
-      { to: "/projects", label: "Projects", icon: "project", testId: "nav-projects" },
-    ],
+    id: "marketing",
+    group: "Marketing",
+    icon: "target",
+    items: [{ to: "/reporting", label: "Marketing Email", icon: "email", testId: "nav-marketing-email" }],
+  },
+  {
+    id: "content",
+    group: "Content",
+    icon: "file",
+    items: [{ to: "/reporting", label: "Website Pages", icon: "globe", testId: "nav-website-pages" }],
   },
   {
     id: "sales",
@@ -39,17 +59,40 @@ const HUBSPOT_NAV: NavGroup[] = [
     icon: "briefcase",
     items: [
       { to: "/sales-workspace", label: "Sales Workspace", icon: "briefcase", testId: "nav-sales-workspace" },
-      { to: "/tasks", label: "Tasks", icon: "task", testId: "nav-tasks" },
+      { to: "/sales-workspace", label: "Calendar", icon: "meeting", testId: "nav-sales-calendar" },
+      { to: "/companies", label: "Target Accounts", icon: "target", testId: "nav-target-accounts" },
+      { to: "/tasks", label: "Sequences", icon: "workflow", testId: "nav-sequences" },
+      { to: "/reporting", label: "Sales Analytics", icon: "chart", testId: "nav-sales-analytics" },
     ],
   },
   {
-    id: "commerce",
-    group: "Commerce",
+    id: "revenue",
+    group: "Revenue",
     icon: "quote",
     items: [
+      { to: "/reporting", label: "Overview", icon: "chart", testId: "nav-revenue-overview" },
       { to: "/quotes", label: "Quotes", icon: "quote", testId: "nav-quotes" },
-      { to: "/products", label: "Products", icon: "product", testId: "nav-products" },
+      { to: "/quotes", label: "Contracts", icon: "file", testId: "nav-contracts" },
+      { to: "/quotes", label: "Invoices", icon: "quote", testId: "nav-invoices" },
     ],
+  },
+  {
+    id: "service",
+    group: "Service",
+    icon: "ticket",
+    items: [{ to: "/tickets", label: "Tickets", icon: "ticket", testId: "nav-service-tickets" }],
+  },
+  {
+    id: "data",
+    group: "Data Management",
+    icon: "layers",
+    items: [{ to: "/segments", label: "Data Quality", icon: "filter", testId: "nav-data-quality" }],
+  },
+  {
+    id: "agents",
+    group: "Agents",
+    icon: "sparkle",
+    items: [{ to: "/sales-workspace", label: "Prospecting Agent", icon: "sparkle", testId: "nav-prospecting-agent" }],
   },
   {
     id: "automation",
@@ -62,6 +105,12 @@ const HUBSPOT_NAV: NavGroup[] = [
     group: "Reporting",
     icon: "chart",
     items: [{ to: "/reporting", label: "Dashboards", icon: "chart", testId: "nav-reporting" }],
+  },
+  {
+    id: "development",
+    group: "Development",
+    icon: "settings",
+    items: [{ to: "/reporting", label: "Developer Overview", icon: "globe", testId: "nav-development" }],
   },
 ];
 
@@ -83,14 +132,14 @@ function Sidebar() {
       aria-label="HubSpot Primary Navigation"
       data-testid="hubspot-left-nav"
       className={cx(
-        "group/nav relative z-30 shrink-0 border-r border-[#33475b] bg-[#1f2a37]",
-        pinned ? "w-[220px]" : "w-[52px]",
+        "group/nav relative z-30 shrink-0 border-r border-[#33475b] bg-[#333333]",
+        pinned ? "w-[236px]" : "w-[64px]",
       )}
     >
       <div
         className={cx(
-          "absolute inset-y-0 left-0 flex flex-col overflow-hidden bg-[#1f2a37] text-white transition-[width] duration-100",
-          pinned ? "w-[220px]" : "w-[52px] hover:w-[220px] hover:shadow-[8px_0_24px_rgba(15,23,42,0.4)]",
+          "absolute inset-y-0 left-0 flex flex-col overflow-hidden bg-[#333333] text-white transition-[width] duration-100",
+          pinned ? "w-[236px]" : "w-[64px] hover:w-[236px] hover:shadow-[8px_0_24px_rgba(15,23,42,0.4)]",
         )}
       >
         <div className="hs-scroll flex-1 overflow-y-auto overflow-x-hidden pb-2 pt-2">
@@ -109,7 +158,7 @@ function Sidebar() {
                 key={`bm-${bm.to}`}
                 to={bm.to}
                 className={cx(
-                  "mx-1.5 mt-0.5 flex h-7 items-center gap-2.5 whitespace-nowrap rounded-[4px] px-2.5 text-[12.5px] text-[#cbd6e2] hover:bg-[#2e3f50] hover:text-white",
+                  "mx-1.5 mt-0.5 flex h-7 items-center gap-2.5 whitespace-nowrap rounded-[4px] px-2.5 text-[12.5px] text-[#cbd6e2] hover:bg-[#444444] hover:text-white",
                 )}
               >
                 <Icon name={bm.icon} size={14} className="shrink-0 text-[#99acc2]" />
@@ -146,11 +195,11 @@ function Sidebar() {
                           className={cx(
                             "relative mx-1.5 mt-0.5 flex h-8 items-center gap-2.5 whitespace-nowrap rounded-[4px] px-2.5 text-[13px] transition-colors",
                             active
-                              ? "bg-[#33475b] font-semibold text-white before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-[#ff5c35]"
-                              : "text-[#dfe3eb] hover:bg-[#2e3f50] hover:text-white",
+                              ? "bg-[#444444] font-semibold text-white before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-[#b3f0ed]"
+                              : "text-[#dfe3eb] hover:bg-[#444444] hover:text-white",
                           )}
                         >
-                          <Icon name={item.icon} size={16} className={cx("shrink-0", active ? "text-[#ff5c35]" : "text-[#99acc2]")} />
+                          <Icon name={item.icon} size={16} className={cx("shrink-0", active ? "text-[#b3f0ed]" : "text-[#99acc2]")} />
                           <span className={labelVis}>{item.label}</span>
                         </A>
                       );
@@ -165,7 +214,7 @@ function Sidebar() {
         <div className="border-t border-white/10 p-1.5">
           <A
             to="/profile"
-            className="flex h-8 items-center gap-2.5 whitespace-nowrap rounded-[4px] px-2.5 text-[12.5px] text-[#cbd6e2] hover:bg-[#2e3f50] hover:text-white"
+            className="flex h-8 items-center gap-2.5 whitespace-nowrap rounded-[4px] px-2.5 text-[12.5px] text-[#cbd6e2] hover:bg-[#444444] hover:text-white"
           >
             <Icon name="settings" size={16} className="shrink-0 text-[#99acc2]" />
             <span className={labelVis}>Settings</span>
@@ -174,7 +223,7 @@ function Sidebar() {
             type="button"
             onClick={() => setPinned((p) => !p)}
             data-testid="sidebar-collapse-toggle"
-            className="mt-0.5 flex h-8 w-full items-center gap-2.5 whitespace-nowrap rounded-[4px] px-2.5 text-[12px] text-[#99acc2] hover:bg-[#2e3f50] hover:text-white"
+            className="mt-0.5 flex h-8 w-full items-center gap-2.5 whitespace-nowrap rounded-[4px] px-2.5 text-[12px] text-[#99acc2] hover:bg-[#444444] hover:text-white"
           >
             <Icon name={pinned ? "chevronLeft" : "chevronRight"} size={16} className="shrink-0" />
             <span className={labelVis}>{pinned ? "Collapse sidebar" : "Expand sidebar"}</span>
@@ -276,12 +325,12 @@ function Search() {
           }
         }}
         onFocus={() => setOpen(true)}
-        placeholder="Search HubSpot"
-        aria-label="Search HubSpot"
+        placeholder="Find in HubSpot"
+        aria-label="Find in HubSpot"
         data-testid="global-search"
-        className="h-8 w-full rounded-[4px] border border-[#3e5266] bg-[#253342] pl-8 pr-14 text-[13px] text-white placeholder:text-[#99acc2] focus:border-[#0091ae] focus:bg-white focus:text-[#33475b] focus:outline-none focus:placeholder:text-[#7c98b6]"
+        className="h-8 w-full rounded-[4px] border border-[#3e5266] bg-[#333333] pl-8 pr-14 text-[13px] text-white placeholder:text-[#99acc2] focus:border-[#006162] focus:bg-white focus:text-[#33475b] focus:outline-none focus:placeholder:text-[#7c98b6]"
       />
-      <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-[3px] border border-white/15 bg-[#1f2a37]/80 px-1.5 py-0.5 text-[10.5px] font-medium text-[#cbd6e2]">
+      <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-[3px] border border-white/15 bg-[#333333]/80 px-1.5 py-0.5 text-[10.5px] font-medium text-[#cbd6e2]">
         ⌘K
       </kbd>
       {open && query.trim().length >= 2 ? (
@@ -306,7 +355,7 @@ function Search() {
               <button
                 type="button"
                 data-testid={`search-hit-${hit.key}`}
-                className="flex w-full items-center justify-between gap-3 px-4 py-2 text-left hover:bg-[#e5f5f8]"
+                className="flex w-full items-center justify-between gap-3 px-4 py-2 text-left hover:bg-[#e6f7f7]"
                 onClick={() => {
                   dispatch({ t: "search.query", q: query.trim() });
                   setOpen(false);
@@ -315,7 +364,7 @@ function Search() {
                 }}
               >
                 <div className="min-w-0">
-                  <p className="truncate text-[13px] font-semibold text-[#0091ae]">{hit.title}</p>
+                  <p className="truncate text-[13px] font-semibold text-[#006162]">{hit.title}</p>
                   <p className="truncate text-[11.5px] text-[#516f90]">{hit.sub}</p>
                 </div>
                 <Tag tone="neutral">{hit.group.replace(/s$/, "")}</Tag>
@@ -342,7 +391,7 @@ function GlobalQuickCreate() {
           aria-label="Quick create record"
           title="Create record"
           data-testid="global-quick-create"
-          className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#516f90] bg-[#253342] text-white hover:border-white/60 hover:bg-[#33475b]"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#516f90] bg-[#333333] text-white hover:border-white/60 hover:bg-[#33475b]"
         >
           <Icon name="plus" size={15} />
         </button>
@@ -352,18 +401,6 @@ function GlobalQuickCreate() {
         <>
           <p className="px-3.5 pb-1 pt-1 text-[10.5px] font-bold uppercase tracking-wider text-[#516f90]">Quick create</p>
           <MenuItem
-            testId="quick-create-deal"
-            onClick={() => {
-              close();
-              dispatch({ t: "ui", k: "quickCreate", v: "deal" });
-              navigate("/deals");
-            }}
-          >
-            <span className="flex items-center gap-2 font-medium">
-              <Icon name="deal" size={14} className="text-[#0091ae]" /> Deal
-            </span>
-          </MenuItem>
-          <MenuItem
             testId="quick-create-contact"
             onClick={() => {
               close();
@@ -372,7 +409,7 @@ function GlobalQuickCreate() {
             }}
           >
             <span className="flex items-center gap-2 font-medium">
-              <Icon name="contacts" size={14} className="text-[#0091ae]" /> Contact
+              <Icon name="contacts" size={14} className="text-[#006162]" /> Contact
             </span>
           </MenuItem>
           <MenuItem
@@ -383,18 +420,41 @@ function GlobalQuickCreate() {
             }}
           >
             <span className="flex items-center gap-2 font-medium">
-              <Icon name="company" size={14} className="text-[#0091ae]" /> Company (Search first)
+              <Icon name="company" size={14} className="text-[#006162]" /> Company
             </span>
           </MenuItem>
           <MenuItem
-            testId="quick-create-lead"
+            testId="quick-create-deal"
             onClick={() => {
               close();
-              navigate("/sales-workspace");
+              dispatch({ t: "ui", k: "quickCreate", v: "deal" });
+              navigate("/deals");
             }}
           >
             <span className="flex items-center gap-2 font-medium">
-              <Icon name="briefcase" size={14} className="text-[#0091ae]" /> Open Sales Workspace
+              <Icon name="deal" size={14} className="text-[#006162]" /> Deal
+            </span>
+          </MenuItem>
+          <MenuItem
+            testId="quick-create-ticket"
+            onClick={() => {
+              close();
+              navigate("/tickets");
+            }}
+          >
+            <span className="flex items-center gap-2 font-medium">
+              <Icon name="ticket" size={14} className="text-[#006162]" /> Ticket
+            </span>
+          </MenuItem>
+          <MenuItem
+            testId="quick-create-task"
+            onClick={() => {
+              close();
+              navigate("/tasks");
+            }}
+          >
+            <span className="flex items-center gap-2 font-medium">
+              <Icon name="task" size={14} className="text-[#006162]" /> Task
             </span>
           </MenuItem>
         </>
@@ -418,10 +478,10 @@ function BreezeCopilotButton() {
           type="button"
           onClick={toggle}
           data-testid="breeze-copilot-btn"
-          className="inline-flex h-7 items-center gap-1.5 rounded-[4px] border border-[#516f90]/70 bg-[#253342] px-2.5 text-[12px] font-semibold text-white hover:bg-[#33475b]"
+          className="inline-flex h-7 items-center gap-1.5 rounded-[4px] border border-[#516f90]/70 bg-[#333333] px-2.5 text-[12px] font-semibold text-white hover:bg-[#33475b]"
         >
           <Icon name="sparkle" size={13} className="text-[#ff8fb1]" />
-          <span>Copilot</span>
+          <span>Breeze Assistant</span>
         </button>
       )}
     >
@@ -460,7 +520,7 @@ function HelpButton() {
           onClick={toggle}
           aria-label="HubSpot Help & AMICO Quoting Guide"
           data-testid="help-menu"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#cbd6e2] hover:bg-[#2e3f50] hover:text-white"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#cbd6e2] hover:bg-[#444444] hover:text-white"
         >
           <Icon name="help" size={17} />
         </button>
@@ -520,12 +580,12 @@ function Bell() {
         onClick={toggle}
         aria-label={`Notifications, ${unread} unread`}
         data-testid="bell"
-        className="relative inline-flex h-8 w-8 items-center justify-center rounded-full text-[#cbd6e2] hover:bg-[#2e3f50] hover:text-white"
+        className="relative inline-flex h-8 w-8 items-center justify-center rounded-full text-[#cbd6e2] hover:bg-[#444444] hover:text-white"
       >
         <Icon name="bell" size={17} />
         {unread > 0 ? (
           <span
-            className="absolute -right-0.5 -top-0.5 inline-flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#ff5c35] px-1 text-[10px] font-bold text-white ring-2 ring-[#1f2a37]"
+            className="absolute -right-0.5 -top-0.5 inline-flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#ff5c35] px-1 text-[10px] font-bold text-white ring-2 ring-[#333333]"
             data-testid="bell-count"
           >
             {unread}
@@ -546,7 +606,7 @@ function Bell() {
               <p className="px-4 py-6 text-center text-[13px] text-[#516f90]">No alerts for {persona.name}.</p>
             ) : null}
             {items.map((n) => (
-              <div key={n.id} className={cx("border-b border-[#eaf0f6] px-4 py-3 last:border-b-0", !n.read && "bg-[#e5f5f8]/55")}>
+              <div key={n.id} className={cx("border-b border-[#eaf0f6] px-4 py-3 last:border-b-0", !n.read && "bg-[#e6f7f7]/55")}>
                 <button type="button" onClick={() => openItem(n)} className="block w-full text-left" data-testid={`notif-${n.id}`}>
                   <span className="flex items-center gap-2">
                     {!n.read ? <span className="h-2 w-2 shrink-0 rounded-full bg-[#ff5c35]" /> : null}
@@ -574,7 +634,7 @@ function SettingsGear() {
       title="Profile & Preferences"
       data-testid="settings-gear"
       className={cx(
-        "inline-flex h-8 w-8 items-center justify-center rounded-full text-[#cbd6e2] hover:bg-[#2e3f50] hover:text-white",
+        "inline-flex h-8 w-8 items-center justify-center rounded-full text-[#cbd6e2] hover:bg-[#444444] hover:text-white",
         active && "bg-[#33475b] text-white",
       )}
     >
@@ -584,7 +644,7 @@ function SettingsGear() {
 }
 
 function AccountMenu() {
-  const { pack, persona, navigate } = useShell();
+  const { persona, navigate } = useShell();
   return (
     <Menu
       align="right"
@@ -594,10 +654,12 @@ function AccountMenu() {
           type="button"
           onClick={toggle}
           data-testid="account-menu"
-          className="flex h-8 items-center gap-2 rounded-[4px] px-2 text-[12.5px] text-white hover:bg-[#2e3f50]"
+          className="flex h-8 items-center gap-2 rounded-[4px] px-2 text-[12.5px] text-white hover:bg-[#444444]"
         >
           <Avatar name={persona.name} color={persona.color} size={24} />
-          <span className="max-w-[185px] truncate font-medium">AMICO · HubSpot Sandbox</span>
+          <span className="max-w-[185px] truncate font-medium" data-testid="portal-account-name">
+            AMICO
+          </span>
           <Icon name="chevronDown" size={13} className="text-[#99acc2]" />
         </button>
       )}
@@ -615,8 +677,8 @@ function AccountMenu() {
             </div>
           </div>
           <div className="border-t border-[#eaf0f6] px-3.5 py-2.5">
-            <p className="text-[13px] font-semibold text-[#33475b]">{pack.portal.company} · HubSpot Sandbox</p>
-            <p className="text-[11.5px] text-[#516f90]">Hub ID: {pack.portal.hubId}</p>
+            <p className="text-[13px] font-semibold text-[#33475b]">Account · AMICO</p>
+            <p className="text-[11.5px] text-[#516f90]">Hub ID: 44592643</p>
             <p className="mt-1.5">
               <Tag tone="amber">Sandbox · Synthetic Training Data</Tag>
             </p>
@@ -636,7 +698,7 @@ function AccountMenu() {
             </MenuItem>
           </div>
           <div className="border-t border-[#eaf0f6] py-1">
-            <a href="/launchpad" className="block px-3.5 py-2 text-[13px] text-[#0091ae] hover:bg-[#e5f5f8]" data-testid="exit-launchpad">
+            <a href="/launchpad" className="block px-3.5 py-2 text-[13px] text-[#006162] hover:bg-[#e6f7f7]" data-testid="exit-launchpad">
               ← Exit to Penguin Training Launchpad
             </a>
           </div>
@@ -648,14 +710,14 @@ function AccountMenu() {
 
 export function Chrome({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-[#1f2a37]">
+    <div className="flex min-h-0 flex-1 flex-col bg-[#333333]">
       <header
         data-testid="hubspot-top-bar"
-        className="relative z-[35] flex h-11 shrink-0 items-center gap-2.5 border-b border-[#33475b] bg-[#1f2a37] px-3 text-white"
+        className="relative z-[35] flex h-[44px] shrink-0 items-center gap-2.5 border-b border-[#8a8a8a] bg-[#333333] px-3 text-white"
       >
         <A
           to="/deals"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-[4px] hover:bg-[#2e3f50]"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-[4px] hover:bg-[#444444]"
           aria-label="HubSpot home"
           data-testid="hubspot-sprocket-home"
         >
@@ -676,7 +738,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
       </header>
       <div className="flex min-h-0 flex-1">
         <Sidebar />
-        <main className="hs-scroll relative min-w-0 flex-1 overflow-y-auto bg-[#f5f8fa]" data-testid="shell-main" id="shell-main">
+        <main className="hs-scroll relative min-w-0 flex-1 overflow-y-auto bg-[#f0f0f0]" data-testid="shell-main" id="shell-main">
           {children}
         </main>
       </div>

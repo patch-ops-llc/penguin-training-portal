@@ -81,7 +81,7 @@ export function TrainingBar() {
   }
 
   return (
-    <div className="shrink-0 bg-[#1f2a37] px-3 pb-2 pt-1.5">
+    <div className="shrink-0 bg-[#333333] px-3 pb-2 pt-1.5">
       <div
         className="penguin-hud-shell relative z-[60] flex min-h-[56px] items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-white"
         data-testid="training-bar"

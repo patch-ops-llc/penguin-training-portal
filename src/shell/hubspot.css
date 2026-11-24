@@ -4,9 +4,9 @@
    ========================================================================== */
 
 .hs-app {
-  --hs-chrome: #1f2a37;
-  --hs-chrome-sub: #253342;
-  --hs-chrome-hover: #2e3f50;
+  --hs-chrome: #333333;
+  --hs-chrome-sub: #333333;
+  --hs-chrome-hover: #444444;
   --hs-chrome-active: #33475b;
   --hs-chrome-border: #33475b;
 
@@ -14,9 +14,9 @@
   --hs-flint: #516f90;
   --hs-battleship: #7c98b6;
 
-  --hs-calypso: #0091ae;
-  --hs-calypso-hover: #007a8c;
-  --hs-calypso-soft: #e5f5f8;
+  --hs-calypso: #006162;
+  --hs-calypso-hover: #00494b;
+  --hs-calypso-soft: #e6f7f7;
 
   --hs-lorax: #ff5c35;
   --hs-lorax-hover: #e84b27;
@@ -43,15 +43,15 @@
   --hs-font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
   /* Map legacy shell variables inside .hs-app so every child inherits HubSpot tokens */
-  --color-nav: #1f2a37;
-  --color-nav-hover: #2e3f50;
+  --color-nav: #333333;
+  --color-nav-hover: #444444;
   --color-hs-bg: #f5f8fa;
   --color-ink: #33475b;
   --color-ink-muted: #516f90;
   --color-line: #dfe3eb;
   --color-line-soft: #eaf0f6;
-  --color-link: #0091ae;
-  --color-link-hover: #007a8c;
+  --color-link: #006162;
+  --color-link-hover: #00494b;
   --color-hs-orange: #ff5c35;
   --color-hs-orange-strong: #e84b27;
 
@@ -82,6 +82,17 @@
   text-underline-offset: 2px;
 }
 
+.hs-assoc-chip {
+  background: #e6e6e6;
+  color: #333333;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hs-record-center {
+  background: var(--hs-record-canvas, #f5f8fa);
+}
+
 /* Authentic HubSpot form inputs & selects */
 .hs-app .hs-input {
   height: 34px;
@@ -107,7 +118,7 @@
   outline: none;
   background: #ffffff;
   border-color: var(--hs-calypso);
-  box-shadow: 0 0 0 2px rgba(0, 145, 174, 0.18);
+  box-shadow: 0 0 0 2px rgba(0, 97, 98, 0.18);
 }
 .hs-app .hs-input:disabled {
   background: #eaf0f6;
@@ -193,7 +204,7 @@
   background: #f5f8fa;
 }
 .hs-grid tbody tr[data-selected="true"] td {
-  background: #e5f5f8;
+  background: #e6f7f7;
 }
 
 .hs-grid .hs-sticky-check {
@@ -323,7 +334,7 @@
 }
 
 .hs-drawer-header {
-  background: linear-gradient(90deg, #0091ae 0%, #00a4bd 100%);
+  background: linear-gradient(90deg, #006162 0%, #00a4bd 100%);
   color: #ffffff;
 }
 

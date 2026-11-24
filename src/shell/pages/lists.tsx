@@ -70,7 +70,7 @@ export function ContactsIndex() {
         </div>
       ),
     },
-    { id: "email", label: "Email", cell: (c) => <span className="text-[#0091ae]">{c.email}</span> },
+    { id: "email", label: "Email", cell: (c) => <span className="text-[#006162]">{c.email}</span> },
     { id: "phone", label: "Phone Number", cell: (c) => c.phone || "—" },
     { id: "title", label: "Job Title", cell: (c) => c.title },
     {
@@ -210,7 +210,7 @@ export function ContactsIndex() {
                     closeCreate();
                     navigate(`/contacts/${duplicateContact.id}`);
                   }}
-                  className="mt-2 font-semibold text-[#0091ae] hover:underline"
+                  className="mt-2 font-semibold text-[#006162] hover:underline"
                 >
                   View existing contact ({duplicateContact.firstName} {duplicateContact.lastName}) →
                 </button>
@@ -278,6 +278,23 @@ export function ContactsIndex() {
   );
 }
 
+function erpOracleCustomerId(c: Company) {
+  if (!c.erp?.accountNumber) return "—";
+  return c.erp.accountNumber.split("/")[0]?.trim() ?? "—";
+}
+
+function erpEpicorCompanyId(c: Company) {
+  if (!c.erp?.accountNumber) return "—";
+  const second = c.erp.accountNumber.split("/")[1]?.trim();
+  if (!second) return "—";
+  return second.replace(/^EPI-/i, "").slice(0, 6);
+}
+
+function erpEpicorCustomerId(c: Company) {
+  if (!c.erp?.accountNumber) return "—";
+  return c.erp.accountNumber.split("/").pop()?.trim() ?? "—";
+}
+
 /* ─────────────────────────── COMPANIES INDEX ─────────────────────────── */
 export function CompaniesIndex() {
   const { pack, world, persona, dispatch, navigate } = useShell();
@@ -298,6 +315,11 @@ export function CompaniesIndex() {
 
   const views: View<Company>[] = [
     { id: "all", label: "All companies", filter: () => true },
+    {
+      id: "my",
+      label: "My companies",
+      filter: (c) => c.ownerId === persona.id,
+    },
     {
       id: "division",
       label: "My division",
@@ -328,12 +350,22 @@ export function CompaniesIndex() {
       options: divisions.map((d) => ({ value: d, label: d })),
       test: (c, v) => c.crossDivision?.primaryDivision === v || Boolean(c.crossDivision?.divisionsActive.includes(v)),
     },
+    {
+      id: "lifecycle",
+      label: "Lead status",
+      options: [
+        { value: "Customer", label: "Customer" },
+        { value: "Opportunity", label: "Opportunity" },
+        { value: "Lead", label: "Lead" },
+      ],
+      test: (c, v) => c.lifecycle === v,
+    },
   ];
 
   const columns: Column<Company>[] = [
     {
       id: "name",
-      label: "Company Name",
+      label: "Company name",
       sort: (c) => c.name,
       cell: (c) => (
         <div className="flex flex-wrap items-center gap-2">
@@ -347,34 +379,16 @@ export function CompaniesIndex() {
         </div>
       ),
     },
+    { id: "oracle", label: "Oracle Customer ID", cell: (c) => <span className="font-mono text-[12px]">{erpOracleCustomerId(c)}</span> },
+    { id: "epicorCo", label: "Epicor Company ID", cell: (c) => <span className="font-mono text-[12px]">{erpEpicorCompanyId(c)}</span> },
     {
-      id: "domain",
-      label: "Company Domain Name",
-      cell: (c) =>
-        c.domain ? (
-          <span className="font-mono text-[12px] text-[#516f90]">{c.domain}</span>
-        ) : (
-          <Tag tone="red">Missing domain</Tag>
-        ),
-    },
-    {
-      id: "division",
-      label: "Primary Division",
-      cell: (c) => <Tag tone="neutral">{c.crossDivision?.primaryDivision ?? "—"}</Tag>,
-    },
-    {
-      id: "cross",
-      label: "Cross-Division Penetration",
-      cell: (c) =>
-        c.crossDivision && c.crossDivision.divisionsActive.length > 1 ? (
-          <Tag tone="purple">{c.crossDivision.divisionsActive.length} AMICO divisions</Tag>
-        ) : (
-          <span className="text-[#516f90]">1 division</span>
-        ),
+      id: "epicorCust",
+      label: "Epicor Customer ID",
+      cell: (c) => <span className="font-mono text-[12px] font-semibold">{erpEpicorCustomerId(c)}</span>,
     },
     {
       id: "owner",
-      label: "Company Owner",
+      label: "Company owner",
       cell: (c) => {
         const p = pack.personas.find((x) => x.id === c.ownerId);
         return p ? (
@@ -387,17 +401,12 @@ export function CompaniesIndex() {
         );
       },
     },
-    { id: "city", label: "City / State", cell: (c) => `${c.city}, ${c.state}` },
-    {
-      id: "erp",
-      label: "Epicor Customer ID",
-      cell: (c) =>
-        c.erp ? (
-          <span className="font-mono text-[12px] font-semibold text-[#33475b]">{c.erp.accountNumber}</span>
-        ) : (
-          "—"
-        ),
-    },
+    { id: "created", label: "Create Date", sort: (c) => c.createdAt, cell: (c) => <span className="text-[12px]">{date(c.createdAt)}</span> },
+    { id: "phone", label: "Phone Number", cell: (c) => <span className="text-[#006162]">{c.phone || "—"}</span> },
+    { id: "lastAct", label: "Last Activity Date", sort: (c) => c.lastActivityAt, cell: (c) => shortDate(c.lastActivityAt) },
+    { id: "city", label: "City", cell: (c) => c.city },
+    { id: "region", label: "Country/Region", cell: (c) => `United States / ${c.state}` },
+    { id: "industry", label: "Industry", cell: (c) => c.industry },
   ];
 
   return (
@@ -447,7 +456,7 @@ export function CompaniesIndex() {
               />
             </label>
             {matchedCompany ? (
-              <div className="rounded-[4px] border border-[#99d6e2] bg-[#e5f5f8] p-3.5 text-[#00677d]">
+              <div className="rounded-[4px] border border-[#99d6e2] bg-[#e6f7f7] p-3.5 text-[#00494b]">
                 <p className="font-semibold">{matchedCompany.name} already exists in HubSpot!</p>
                 <p className="mt-1 text-[12px]">
                   Primary division: {matchedCompany.crossDivision?.primaryDivision ?? matchedCompany.industry}. Open the shared Company record instead of creating a duplicate.
@@ -458,7 +467,7 @@ export function CompaniesIndex() {
                     setCreateInfoOpen(false);
                     navigate(`/companies/${matchedCompany.id}`);
                   }}
-                  className="mt-2 font-semibold text-[#0091ae] underline"
+                  className="mt-2 font-semibold text-[#006162] underline"
                 >
                   Open {matchedCompany.name} →
                 </button>
@@ -670,7 +679,7 @@ export function DealsIndex() {
             type="button"
             onClick={() => setAddViewOpen(true)}
             data-testid="add-view-btn"
-            className="inline-flex h-7 items-center gap-1 rounded-[3px] px-2.5 text-[12.5px] font-semibold text-[#0091ae] hover:bg-[#e5f5f8]"
+            className="inline-flex h-7 items-center gap-1 rounded-[3px] px-2.5 text-[12.5px] font-semibold text-[#006162] hover:bg-[#e6f7f7]"
           >
             <Icon name="plus" size={13} /> Add view
           </button>
@@ -736,7 +745,7 @@ export function DealsIndex() {
                 onChange={(e) => dispatch({ t: "deal.selectPipeline", pipelineId: e.target.value })}
                 aria-label="Select deal pipeline"
                 data-testid="pipeline-selector"
-                className="hs-input !h-8 !bg-white font-semibold text-[#0091ae]"
+                className="hs-input !h-8 !bg-white font-semibold text-[#006162]"
               >
                 {pack.pipelines.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -790,7 +799,7 @@ export function DealsIndex() {
                         }}
                         className={cx(
                           "flex max-h-[calc(100vh-295px)] min-h-[420px] w-[285px] shrink-0 flex-col rounded-[4px] border bg-[#eaf0f6]/65 transition-colors",
-                          isDropTarget ? "border-[#0091ae] bg-[#e5f5f8]" : "border-[#dfe3eb]",
+                          isDropTarget ? "border-[#006162] bg-[#e6f7f7]" : "border-[#dfe3eb]",
                         )}
                       >
                         {/* Stage Column Header + Probability Bar */}
@@ -806,7 +815,7 @@ export function DealsIndex() {
                               <div
                                 className={cx(
                                   "h-full rounded-full",
-                                  st.closed === "lost" ? "bg-[#f2545b]" : st.wonRevenue || st.closed === "won" ? "bg-[#00bda5]" : "bg-[#0091ae]",
+                                  st.closed === "lost" ? "bg-[#f2545b]" : st.wonRevenue || st.closed === "won" ? "bg-[#00bda5]" : "bg-[#006162]",
                                 )}
                                 style={{ width: `${Math.max(probPct, st.closed === "lost" ? 100 : 8)}%` }}
                               />
@@ -857,13 +866,11 @@ export function DealsIndex() {
                                       Amount: <strong className="font-semibold tabular-nums text-[#33475b]">{money(d.amount)}</strong>
                                     </p>
                                     <p>
+                                      Create date: <span className="text-[#33475b]">{shortDate(d.createdAt ?? d.closeDate)}</span>
+                                    </p>
+                                    <p>
                                       Close date: <span className="text-[#33475b]">{shortDate(d.closeDate)}</span>
                                     </p>
-                                    {d.bidDate ? (
-                                      <p>
-                                        Bid date: <span className="font-medium text-[#0091ae]">{shortDate(d.bidDate)}</span>
-                                      </p>
-                                    ) : null}
                                   </div>
 
                                   {/* Associated Company / Contact Badges + Division Pill + Owner Avatars */}
@@ -929,26 +936,28 @@ export function DealsIndex() {
                                   </div>
                                 </div>
 
-                                {/* Signature HubSpot Card Activity Health Footer */}
+                                {/* AMICO live board activity chip: recent | upcoming */}
                                 <div
-                                  className={cx(
-                                    "flex items-center gap-1.5 border-t px-3 py-1.5 text-[11px]",
-                                    nextTask
-                                      ? "border-[#eaf0f6] bg-[#f5f8fa] text-[#516f90]"
-                                      : "border-[#f5c26b]/50 bg-[#fef6e7]/75 text-[#8a5300]",
-                                  )}
+                                  className="grid grid-cols-2 divide-x divide-[#dfe3eb] border-t border-[#dfe3eb] bg-[#f5f8fa] text-[11px] text-[#666666]"
+                                  data-testid={`board-card-activity-${d.id}`}
                                 >
-                                  {nextTask ? (
-                                    <>
-                                      <Icon name="task" size={12} className="shrink-0 text-[#0091ae]" />
-                                      <span className="truncate">Next: {nextTask.title}</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Icon name="warning" size={12} className="shrink-0 text-[#d97706]" />
-                                      <span className="font-medium">No activity scheduled</span>
-                                    </>
-                                  )}
+                                  <span className="flex items-center gap-1 px-2 py-1.5">
+                                    <span className="text-[#8a8a8a]">—</span>
+                                    <span className="truncate">Recent empty</span>
+                                  </span>
+                                  <span className="flex items-center gap-1 px-2 py-1.5">
+                                    {nextTask ? (
+                                      <>
+                                        <Icon name="task" size={11} className="shrink-0 text-[#006162]" />
+                                        <span className="truncate">{nextTask.title}</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Icon name="warning" size={11} className="shrink-0 text-[#d97706]" />
+                                        <span>No upcoming</span>
+                                      </>
+                                    )}
+                                  </span>
                                 </div>
                               </div>
                             );
@@ -961,11 +970,13 @@ export function DealsIndex() {
                           data-testid={`board-col-totals-${st.id}`}
                         >
                           <div className="flex items-center justify-between">
-                            <span>Total:</span>
+                            <span>Total amount:</span>
                             <strong className="font-semibold tabular-nums text-[#33475b]">{money(sum)}</strong>
                           </div>
                           <div className="flex items-center justify-between text-[11px]">
-                            <span>Weighted ({probPct}%):</span>
+                            <span>
+                              Weighted amount ({probPct}%):
+                            </span>
                             <span className="font-semibold tabular-nums text-[#33475b]">{money(weighted)}</span>
                           </div>
                         </div>
@@ -1054,7 +1065,7 @@ export function DealsIndex() {
                 type="checkbox"
                 checked={viewMyDeals}
                 onChange={(e) => setViewMyDeals(e.target.checked)}
-                className="accent-[#0091ae]"
+                className="accent-[#006162]"
               />
               <span>Filter to deals where I am Owner / Inside Sales / Estimator</span>
             </label>
@@ -1063,7 +1074,7 @@ export function DealsIndex() {
                 type="checkbox"
                 checked={viewBidThisMonth}
                 onChange={(e) => setViewBidThisMonth(e.target.checked)}
-                className="accent-[#0091ae]"
+                className="accent-[#006162]"
               />
               <span>Bid Date or Close Date within next 30 days</span>
             </label>
@@ -1213,7 +1224,7 @@ export function TasksIndex() {
           checked={t.status === "done"}
           data-testid={`task-check-${t.id}`}
           onChange={() => dispatch({ t: "task.toggle", id: t.id })}
-          className="h-4 w-4 accent-[#0091ae]"
+          className="h-4 w-4 accent-[#006162]"
         />
       ),
     },
@@ -1454,7 +1465,7 @@ export function TicketsIndex() {
   ];
 
   const columns: Column<TicketRow>[] = [
-    { id: "sub", label: "Ticket Name", cell: (t) => <span className="font-semibold text-[#0091ae]">{t.subject}</span> },
+    { id: "sub", label: "Ticket Name", cell: (t) => <span className="font-semibold text-[#006162]">{t.subject}</span> },
     { id: "pipe", label: "Pipeline", cell: (t) => t.pipeline },
     { id: "stage", label: "Ticket Status", cell: (t) => <Tag tone="amber">{t.stage}</Tag> },
     { id: "pri", label: "Priority", cell: (t) => <Tag tone={t.priority === "High" ? "red" : "neutral"}>{t.priority}</Tag> },

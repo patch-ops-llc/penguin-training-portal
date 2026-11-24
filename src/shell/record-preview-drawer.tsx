@@ -227,7 +227,7 @@ export function RecordPreviewHost() {
             </div>
             <div>
               <p className="text-[11px] uppercase tracking-wide text-[#516f90]">Stage</p>
-              <p className="mt-0.5 truncate text-[12.5px] font-semibold text-[#0091ae]">{stageLabel}</p>
+              <p className="mt-0.5 truncate text-[12.5px] font-semibold text-[#006162]">{stageLabel}</p>
             </div>
             <div>
               <p className="text-[11px] uppercase tracking-wide text-[#516f90]">Close date</p>

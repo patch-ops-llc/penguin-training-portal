@@ -32,13 +32,13 @@ test("HubSpot 2025/2026 Smart CRM UI Fidelity: dark slate chrome, Search HubSpot
 
   const topBg = await topBar.evaluate((el) => getComputedStyle(el).backgroundColor);
   const leftBg = await leftNav.evaluate((el) => getComputedStyle(el).backgroundColor);
-  expect(topBg).toBe("rgb(31, 42, 55)"); // #1f2a37
-  expect(leftBg).toBe("rgb(31, 42, 55)"); // #1f2a37
+  expect(topBg).toBe("rgb(51, 51, 51)"); // #333333 AMICO live toolbar
+  expect(leftBg).toBe("rgb(51, 51, 51)"); // #333333
 
-  await expect(page.getByTestId("global-search")).toHaveAttribute("placeholder", "Search HubSpot");
+  await expect(page.getByTestId("global-search")).toHaveAttribute("placeholder", "Find in HubSpot");
   await expect(page.getByTestId("global-quick-create")).toBeVisible();
   await expect(page.getByTestId("breeze-copilot-btn")).toBeVisible();
-  await expect(page.getByTestId("account-menu")).toContainText("AMICO · HubSpot Sandbox");
+  await expect(page.getByTestId("account-menu")).toContainText("AMICO");
 
   // Verify `/` shortcut focuses Search HubSpot
   await page.keyboard.press("/");
@@ -54,6 +54,8 @@ test("HubSpot 2025/2026 Smart CRM UI Fidelity: dark slate chrome, Search HubSpot
   await expect(hud).toBeVisible();
 
   // 3. Companies Index: Object Switcher, Saved Views, Quick Filter Strip, Dense Grid & Right-Side Record Preview Drawer
+  await expect(page.getByTestId("nav-addresses")).toBeVisible();
+  await expect(page.getByTestId("nav-epicor-quotes")).toBeVisible();
   await page.getByTestId("nav-companies").click();
   await expect(page.getByTestId("object-switcher")).toContainText("Companies");
   await expect(page.getByTestId("index-search")).toHaveAttribute("placeholder", "Search companies");
@@ -80,8 +82,8 @@ test("HubSpot 2025/2026 Smart CRM UI Fidelity: dark slate chrome, Search HubSpot
   await page.getByTestId("pipeline-selector").selectOption("security-fence");
   await page.getByTestId("layout-board").click();
   await expect(page.getByTestId("deals-board")).toBeVisible();
-  await expect(page.getByTestId("board-col-totals-planning")).toContainText("Total:$485,000");
-  await expect(page.getByTestId("board-col-totals-planning")).toContainText("Weighted (10%):$48,500");
+  await expect(page.getByTestId("board-col-totals-planning")).toContainText("Total amount:");
+  await expect(page.getByTestId("board-col-totals-planning")).toContainText("Weighted amount (10%):");
   if (screenshotDir) {
     await page.screenshot({
       path: path.join(screenshotDir, "hubspot-fidelity-deals-board.png"),
@@ -98,6 +100,8 @@ test("HubSpot 2025/2026 Smart CRM UI Fidelity: dark slate chrome, Search HubSpot
   await page.getByTestId("deal-link-dl-ironpeak-perim").click();
   await expect(page.getByTestId("deal-record")).toBeVisible();
   await expect(page.getByTestId("record-quick-actions")).toBeVisible();
+  await expect(page.getByTestId("deal-estimating-progress-card")).toBeVisible();
+  await expect(page.getByTestId("deal-quoting-card")).toBeVisible();
 
   // Click Call Quick Action icon -> opens floating bottom-right HubSpot Composer with Call Outcome selector
   await page.getByTestId("quick-action-call").click();

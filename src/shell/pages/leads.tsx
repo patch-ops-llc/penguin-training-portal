@@ -137,11 +137,11 @@ export function LeadsPage() {
         <div className="rounded-[4px] border border-[#dfe3eb] bg-white px-4 py-3">
           <p className="text-[11px] font-bold uppercase tracking-wider text-[#516f90]">Tasks due today</p>
           <p className="mt-1 text-[22px] font-bold tabular-nums text-[#33475b]">{myOpenTasks.length || openTasks.length}</p>
-          <p className="text-[11.5px] text-[#0091ae]">In shared &amp; personal queues</p>
+          <p className="text-[11.5px] text-[#006162]">In shared &amp; personal queues</p>
         </div>
         <div className="rounded-[4px] border border-[#dfe3eb] bg-white px-4 py-3">
           <p className="text-[11px] font-bold uppercase tracking-wider text-[#516f90]">Open leads</p>
-          <p className="mt-1 text-[22px] font-bold tabular-nums text-[#0091ae]">{openLeadsCount}</p>
+          <p className="mt-1 text-[22px] font-bold tabular-nums text-[#006162]">{openLeadsCount}</p>
           <p className="text-[11.5px] text-[#516f90]">Awaiting NSM / rep qualification</p>
         </div>
         <div className="rounded-[4px] border border-[#dfe3eb] bg-white px-4 py-3">
@@ -204,7 +204,7 @@ export function LeadsPage() {
                         type="checkbox"
                         checked={tk.status === "done"}
                         onChange={() => dispatch({ t: "task.toggle", id: tk.id })}
-                        className="accent-[#0091ae]"
+                        className="accent-[#006162]"
                       />
                       <span className="font-semibold text-[#33475b]">{tk.title}</span>
                     </span>
@@ -305,7 +305,7 @@ export function LeadsPage() {
                   <thead>
                     <tr>
                       <th className="hs-sticky-check">
-                        <input type="checkbox" aria-label="Select all leads" className="accent-[#0091ae]" />
+                        <input type="checkbox" aria-label="Select all leads" className="accent-[#006162]" />
                       </th>
                       <th className="hs-sticky-name">Lead Name</th>
                       <th>Lead Stage</th>
@@ -332,7 +332,7 @@ export function LeadsPage() {
                           }}
                         >
                           <td className="hs-sticky-check">
-                            <input type="checkbox" aria-label={`Select ${l.name}`} className="accent-[#0091ae]" />
+                            <input type="checkbox" aria-label={`Select ${l.name}`} className="accent-[#006162]" />
                           </td>
                           <td className="hs-sticky-name">
                             <div className="flex items-center justify-between gap-2">
@@ -445,7 +445,7 @@ export function LeadsPage() {
                         setQualifying(activeLead);
                       }
                     }}
-                    className="hs-input mt-1 !h-8 w-full !bg-white font-semibold text-[#0091ae]"
+                    className="hs-input mt-1 !h-8 w-full !bg-white font-semibold text-[#006162]"
                   >
                     {(["New", "Attempting", "Connected", "Qualified", "Disqualified"] as const).map((st) => (
                       <option key={st} value={st}>
@@ -494,7 +494,7 @@ export function LeadsPage() {
               <div className="space-y-3 text-[12.5px]">
                 <div className="rounded-[4px] border border-[#eaf0f6] bg-[#f5f8fa] p-3">
                   <div className="flex items-center justify-between text-[11px] text-[#516f90]">
-                    <span className="font-bold uppercase text-[#0091ae]">Web Form Submission</span>
+                    <span className="font-bold uppercase text-[#006162]">Web Form Submission</span>
                     <span>{date(activeLead.createdAt)}</span>
                   </div>
                   <p className="mt-1 font-semibold text-[#33475b]">Inbound RFQ routed to NSM Queue ({activeLead.division})</p>
