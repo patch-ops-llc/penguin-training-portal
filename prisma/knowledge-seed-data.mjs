@@ -92,3 +92,48 @@ export const AMICO_KNOWLEDGE_SEEDS = [
     summary: "Security Mesh quoting procedures, product configuration notes, and Epicor integration touchpoints.",
   },
 ];
+
+/** Training recording slots (links attached by admins after live sessions). */
+export const AMICO_KNOWLEDGE_RECORDING_SEEDS = [
+  {
+    slug: "training-recording-hubspot-101-monday",
+    title: "Go-Live Training Call — Monday (HubSpot 101)",
+    category: "RECORDING",
+    division: null,
+    sortOrder: 210,
+    summary:
+      "Placeholder for the Monday HubSpot 101 live training replay. After the session, a Penguin or AMICO admin will publish the recording link here.",
+  },
+  {
+    slug: "training-recording-hubspot-101-tuesday",
+    title: "Go-Live Training Call — Tuesday (HubSpot 101)",
+    category: "RECORDING",
+    division: null,
+    sortOrder: 220,
+    summary:
+      "Placeholder for the Tuesday HubSpot 101 live training replay. Recording URL will appear once the facilitator uploads it.",
+  },
+  {
+    slug: "training-recording-division-handover-monday",
+    title: "Division Handover Q&A — Monday",
+    category: "RECORDING",
+    division: null,
+    sortOrder: 230,
+    summary:
+      "Placeholder for the Monday division handover Q&A session. No link is available until admins attach the Teams/Zoom replay.",
+  },
+  {
+    slug: "training-recording-division-handover-tuesday",
+    title: "Division Handover Q&A — Tuesday",
+    category: "RECORDING",
+    division: null,
+    sortOrder: 240,
+    summary:
+      "Placeholder for the Tuesday division handover Q&A session. Check back after go-live week for the published recording.",
+  },
+];
+
+export const AMICO_KNOWLEDGE_ALL_SLUGS = [
+  ...AMICO_KNOWLEDGE_SEEDS.map((s) => s.slug),
+  ...AMICO_KNOWLEDGE_RECORDING_SEEDS.map((s) => s.slug),
+];

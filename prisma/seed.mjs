@@ -9,7 +9,11 @@ import { fileURLToPath } from "node:url";
 import { PrismaClient } from "@prisma/client";
 import { hashPassword, MIN_PASSWORD_LENGTH } from "../src/lib/password.mjs";
 import { docxFileToMarkdown, summaryFromMarkdown } from "../src/lib/knowledge/docx.mjs";
-import { AMICO_KNOWLEDGE_SEEDS } from "./knowledge-seed-data.mjs";
+import {
+  AMICO_KNOWLEDGE_ALL_SLUGS,
+  AMICO_KNOWLEDGE_RECORDING_SEEDS,
+  AMICO_KNOWLEDGE_SEEDS,
+} from "./knowledge-seed-data.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOCS_DIR = path.join(__dirname, "..", "public", "docs", "amico");
@@ -119,6 +123,16 @@ async function seedKnowledgeLibrary() {
     return;
   }
 
+  const removed = await prisma.knowledgeDocument.deleteMany({
+    where: {
+      tenantId: amico.id,
+      slug: { notIn: [...AMICO_KNOWLEDGE_ALL_SLUGS] },
+    },
+  });
+  if (removed.count > 0) {
+    console.log(`[seed] Removed ${removed.count} non-canonical knowledge doc(s) outside the AMICO library catalog.`);
+  }
+
   for (const item of AMICO_KNOWLEDGE_SEEDS) {
     const filePath = path.join(DOCS_DIR, item.publicFile);
     if (!fs.existsSync(filePath)) {
@@ -172,18 +186,60 @@ async function seedKnowledgeLibrary() {
       continue;
     }
 
-    const needsContent = !existing.contentMarkdown?.trim() || !existing.fileBytes || existing.fileBytes.length === 0;
-
     await prisma.knowledgeDocument.update({
       where: { id: existing.id },
       data: {
         ...base,
-        summary: needsContent || !existing.summary ? summary : existing.summary,
-        contentMarkdown: needsContent ? markdown : existing.contentMarkdown,
-        fileBytes: needsContent ? fileBytes : existing.fileBytes,
+        summary,
+        contentMarkdown: markdown,
+        fileBytes,
       },
     });
     console.log(`[seed] Knowledge doc upserted: ${item.slug}`);
+  }
+
+  for (const item of AMICO_KNOWLEDGE_RECORDING_SEEDS) {
+    const existing = await prisma.knowledgeDocument.findUnique({
+      where: { tenantId_slug: { tenantId: amico.id, slug: item.slug } },
+    });
+
+    const data = {
+      title: item.title,
+      category: item.category,
+      division: item.division,
+      sortOrder: item.sortOrder,
+      summary: item.summary,
+      contentMarkdown: "",
+      fileName: null,
+      mimeType: null,
+      fileSize: null,
+      fileBytes: null,
+      externalUrl: existing?.externalUrl ?? null,
+    };
+
+    if (!existing) {
+      await prisma.knowledgeDocument.create({
+        data: { tenantId: amico.id, slug: item.slug, ...data },
+      });
+      console.log(`[seed] Knowledge recording slot created: ${item.slug}`);
+    } else if (existing.adminEdited) {
+      await prisma.knowledgeDocument.update({
+        where: { id: existing.id },
+        data: {
+          title: item.title,
+          category: item.category,
+          division: item.division,
+          sortOrder: item.sortOrder,
+        },
+      });
+      console.log(`[seed] Knowledge recording metadata refreshed: ${item.slug}`);
+    } else {
+      await prisma.knowledgeDocument.update({
+        where: { id: existing.id },
+        data: { ...data, externalUrl: existing.externalUrl },
+      });
+      console.log(`[seed] Knowledge recording slot upserted: ${item.slug}`);
+    }
   }
 }
 

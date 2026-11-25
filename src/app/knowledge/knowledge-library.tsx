@@ -196,7 +196,9 @@ export function KnowledgeLibrary({
               <p className="mt-1.5 flex-1 text-[13.5px] leading-relaxed text-ink-soft">{doc.summary}</p>
               <p className="mt-2 text-[12px] text-ink-muted">
                 {doc.category === "RECORDING"
-                  ? "External recording"
+                  ? doc.externalUrl
+                    ? "External recording · link ready"
+                    : "Recording pending — admin will post replay link"
                   : `${doc.fileName ?? "Document"} · ${formatFileSize(doc.fileSize)}`}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -210,6 +212,13 @@ export function KnowledgeLibrary({
                   >
                     Open Recording
                   </a>
+                ) : doc.category === "RECORDING" ? (
+                  <span
+                    data-testid={`knowledge-recording-pending-${doc.slug}`}
+                    className="rounded-md border border-line bg-surface-subtle px-3 py-1.5 text-[13px] font-medium text-ink-muted"
+                  >
+                    Recording scheduled
+                  </span>
                 ) : doc.contentMarkdown?.trim() ? (
                   <Link
                     href={`/knowledge/${doc.slug}`}

@@ -38,14 +38,18 @@ export function KnowledgeMarkdown({ markdown }: { markdown: string }) {
         ),
         li: ({ children }) => <li className="leading-relaxed">{children}</li>,
         table: ({ children }) => (
-          <div className="my-4 overflow-x-auto rounded-lg border border-line">
-            <table className="min-w-full border-collapse text-left text-[13.5px]">{children}</table>
+          <div className="knowledge-table-wrap my-5 overflow-x-auto rounded-lg border border-line bg-surface">
+            <table className="knowledge-table min-w-full border-collapse text-left text-[13.5px]">{children}</table>
           </div>
         ),
-        thead: ({ children }) => <thead className="bg-surface-subtle text-[12.5px] font-semibold uppercase tracking-wide text-ink-muted">{children}</thead>,
-        th: ({ children }) => <th className="border-b border-line px-3 py-2 font-semibold text-ink">{children}</th>,
-        td: ({ children }) => <td className="border-b border-line-soft px-3 py-2 text-ink-soft">{children}</td>,
-        tr: ({ children }) => <tr className="even:bg-surface-subtle/60">{children}</tr>,
+        thead: ({ children }) => (
+          <thead className="bg-surface-sunken text-[12px] font-semibold uppercase tracking-[0.04em] text-ink-muted">{children}</thead>
+        ),
+        th: ({ children }) => (
+          <th className="border border-line px-3 py-2.5 text-left font-semibold text-ink align-top">{children}</th>
+        ),
+        td: ({ children }) => <td className="border border-line-soft px-3 py-2.5 text-ink-soft align-top leading-snug">{children}</td>,
+        tr: ({ children }) => <tr className="bg-surface even:bg-surface-subtle/50">{children}</tr>,
         blockquote: ({ children }) => (
           <blockquote className="my-4 rounded-r-lg border-l-4 border-penguin bg-penguin-soft/60 px-4 py-3 text-[14px] text-ink">
             {children}

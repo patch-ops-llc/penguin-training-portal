@@ -3,6 +3,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { credentials, isLocal, signIn } from "./helpers";
 
+const RECORDING_SLUGS = [
+  "training-recording-hubspot-101-monday",
+  "training-recording-hubspot-101-tuesday",
+  "training-recording-division-handover-monday",
+  "training-recording-division-handover-tuesday",
+];
+
 const SEEDED_SLUGS = [
   "amico-hubspot-101-training-guide",
   "security-fence-hubspot-handover",
@@ -22,11 +29,14 @@ test("launchpad links to Knowledge Library and all 10 seeded AMICO docs are filt
   await page.getByTestId("launchpad-knowledge-cta").click();
   await expect(page).toHaveURL(/\/knowledge/);
   await expect(page.getByTestId("knowledge-library")).toBeVisible();
-  const countText = await page.getByTestId("knowledge-result-count").textContent();
-  expect(countText).toMatch(/of (1[0-9]|[2-9]\d+)/);
+  await expect(page.getByTestId("knowledge-result-count")).toContainText("Showing 14 of 14");
 
-  for (const slug of SEEDED_SLUGS) {
+  for (const slug of [...SEEDED_SLUGS, ...RECORDING_SLUGS]) {
     await expect(page.getByTestId(`knowledge-card-${slug}`)).toBeVisible();
+  }
+
+  for (const slug of RECORDING_SLUGS) {
+    await expect(page.getByTestId(`knowledge-recording-pending-${slug}`)).toBeVisible();
   }
 
   await page.getByTestId("knowledge-category-core-onboarding").click();
@@ -53,14 +63,21 @@ test("formatted reader shows TOC, tables, download, and docx bytes from API", as
   await expect(page.getByTestId("knowledge-reader")).toBeVisible();
   await expect(page.getByTestId("knowledge-toc")).toBeVisible();
   await expect(page.getByTestId("knowledge-reader-article")).toBeVisible();
-  await expect(page.locator("table").first()).toBeVisible({ timeout: 15_000 }).catch(() => {
-    // Some guides may use list-heavy layouts; ensure article still renders headings.
-  });
+  await expect(page.locator(".knowledge-table").first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator(".knowledge-table thead th").first()).toBeVisible();
+  const articleText = await page.getByTestId("knowledge-reader-article").innerText();
+  expect(articleText).not.toContain("||");
+  expect(articleText).not.toContain("TABLE_GFM");
   await expect(page.getByRole("heading").first()).toBeVisible();
 
   const listRes = await request.get("/api/knowledge", { headers: { cookie: await sessionCookie(page) } });
   expect(listRes.ok()).toBeTruthy();
-  const listJson = (await listRes.json()) as { documents: { id: string; slug: string }[] };
+  const listJson = (await listRes.json()) as { documents: { id: string; slug: string; contentMarkdown: string }[] };
+  for (const slug of SEEDED_SLUGS) {
+    const doc = listJson.documents.find((d) => d.slug === slug);
+    expect(doc, `missing seeded doc ${slug}`).toBeTruthy();
+    expect(doc!.contentMarkdown).not.toMatch(/\|\|/);
+  }
   const hubspot = listJson.documents.find((d) => d.slug === "amico-hubspot-101-training-guide");
   expect(hubspot).toBeTruthy();
 
