@@ -170,7 +170,25 @@ export type Action =
       insideSalesOwnerId: string;
       stage?: string;
       at: number;
-    };
+    }
+  | {
+      t: "email.send";
+      subject: string;
+      body: string;
+      to: string;
+      templateId?: string;
+      snippetId?: string;
+      sequenceEnroll?: boolean;
+      trackOpens: boolean;
+      trackClicks: boolean;
+      logToCrm: boolean;
+      attachQuoteId?: string;
+      contactIds: string[];
+      companyIds: string[];
+      dealIds: string[];
+      at: number;
+    }
+  | { t: "marketing.email.createDraft"; name: string };
 
 export function seedWorld(pack: Pack, defaultPersonaOverride?: string): World {
   return {
@@ -489,6 +507,51 @@ export function mutate(w: World, a: Action, pack: Pack): void {
         w.flags[`task.done.${task.id}`] = true;
         w.flags["task.toggled"] = true;
       }
+      return;
+    }
+
+    case "email.send": {
+      const at = iso(a.at);
+      const tracking =
+        a.trackOpens || a.trackClicks
+          ? ` · Tracking: ${[a.trackOpens && "opens", a.trackClicks && "clicks"].filter(Boolean).join(" & ")}`
+          : "";
+      const quoteBit = a.attachQuoteId ? ` · Quote link: ${a.attachQuoteId}` : "";
+      addActivity(w, {
+        at,
+        type: "email",
+        title: `Tracked email · ${a.subject}`,
+        body: `To: ${a.to}\n\n${a.body}${quoteBit}${tracking}`,
+        byId: w.persona,
+        contactIds: a.contactIds,
+        companyIds: a.companyIds,
+        dealIds: a.dealIds,
+      });
+      touch(w, at, { companyIds: a.companyIds, contactIds: a.contactIds, dealIds: a.dealIds });
+      w.flags["email.sent"] = true;
+      w.flags["logged.email"] = true;
+      if (a.trackOpens && a.trackClicks) w.flags["email.track.enabled"] = true;
+      if (a.trackOpens) w.flags["email.track.opens"] = true;
+      if (a.trackClicks) w.flags["email.track.clicks"] = true;
+      if (a.logToCrm) w.flags["email.logged.crm"] = true;
+      if (a.templateId) w.flags[`email.template.${a.templateId}`] = true;
+      if (a.snippetId) {
+        w.flags["email.snippet.used"] = true;
+        w.flags[`email.snippet.${a.snippetId}`] = true;
+      }
+      if (a.sequenceEnroll) w.flags["email.sequence.enrolled"] = true;
+      if (a.attachQuoteId) w.flags["email.quote.attached"] = true;
+      if (a.dealIds[0]) {
+        w.flags[`email.sent.${a.dealIds[0]}`] = true;
+        w.flags[`logged.email.${a.dealIds[0]}`] = true;
+      }
+      if (a.contactIds[0]) w.flags[`email.sent.contact.${a.contactIds[0]}`] = true;
+      return;
+    }
+
+    case "marketing.email.createDraft": {
+      w.flags["marketing.email.draftCreated"] = true;
+      w.ui["marketing.email.lastDraft"] = a.name;
       return;
     }
 

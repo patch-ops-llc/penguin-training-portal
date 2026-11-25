@@ -20,7 +20,7 @@ export const AMICO_DIVISIONS = [
   "APC and Diamond",
 ];
 
-export const AMICO_DEFAULT_TRACKS = ["amico-hubspot-101", "amico-security-fence"];
+export const AMICO_DEFAULT_TRACKS = ["amico-hubspot-101", "amico-security-fence", "amico-email"];
 
 async function seedTenants() {
   const amico = await prisma.tenant.upsert({

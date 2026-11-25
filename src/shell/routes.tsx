@@ -20,6 +20,7 @@ import { ProjectRecord, ProjectsIndex } from "./pages/projects";
 import { QuotePage } from "./pages/quote";
 import { CompanyRecord, ContactRecord, DealRecord } from "./pages/records";
 import { SegmentRecord, SegmentsIndex } from "./pages/segments";
+import { MarketingEmailIndex } from "./pages/marketing-email";
 import { WorkflowPage } from "./pages/workflow";
 
 export function Routes() {
@@ -58,6 +59,8 @@ export function Routes() {
       return id ? <WorkflowPage id={id} /> : <WorkflowsIndex />;
     case "reporting":
       return <ReportingDashboardPage />;
+    case "marketing":
+      return id === "email" ? <MarketingEmailIndex /> : <MarketingEmailIndex />;
     default:
       return <DealsIndex />;
   }

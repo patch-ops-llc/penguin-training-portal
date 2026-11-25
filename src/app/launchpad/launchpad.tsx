@@ -25,6 +25,7 @@ const ROLE_FILTERS = ["All roles", "Sales Rep", "Inside Sales Rep", "Estimator",
 const TRACK_CATEGORIES: { id: "all" | TrainingTrackCategory; label: string }[] = [
   { id: "all", label: "All Tracks" },
   { id: "core", label: "Core HubSpot" },
+  { id: "email", label: "Email & Communications" },
   { id: "division-quoting", label: "Division Quoting Guides" },
   { id: "division-handover", label: "Division Handovers" },
 ];
@@ -100,7 +101,13 @@ export function Launchpad({
     if (trackCategory === "all") return true;
     const cat =
       track.category ??
-      (track.id === "amico-hubspot-101" ? "core" : track.id === "amico-security-fence" ? "division-handover" : "division-quoting");
+      (track.id === "amico-hubspot-101"
+        ? "core"
+        : track.id === "amico-security-fence"
+          ? "division-handover"
+          : track.id === "amico-email"
+            ? "email"
+            : "division-quoting");
     if (cat !== trackCategory) return false;
     if (trackCategory === "division-quoting" && quotingDivision !== "All divisions" && track.division !== quotingDivision) {
       return false;

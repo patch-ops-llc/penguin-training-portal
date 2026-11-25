@@ -45,7 +45,7 @@ const HUBSPOT_NAV: NavGroup[] = [
     id: "marketing",
     group: "Marketing",
     icon: "target",
-    items: [{ to: "/reporting", label: "Marketing Email", icon: "email", testId: "nav-marketing-email" }],
+    items: [{ to: "/marketing/email", label: "Marketing Email", icon: "email", testId: "nav-marketing-email" }],
   },
   {
     id: "content",

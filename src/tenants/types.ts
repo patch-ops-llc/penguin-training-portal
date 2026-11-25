@@ -496,7 +496,7 @@ export type TrainingModuleMeta = {
   donts: string[];
 };
 
-export type TrainingTrackCategory = "core" | "division-handover" | "division-quoting";
+export type TrainingTrackCategory = "core" | "division-handover" | "division-quoting" | "email";
 
 export type TrainingTrackMeta = {
   id: string;
