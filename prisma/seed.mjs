@@ -3,8 +3,20 @@
 // 2. Ensures every ADMIN_EMAILS address has an active PENGUIN_ADMIN account.
 // 3. Purges access logs, attempts, and audits older than LOG_RETENTION_DAYS, plus expired sessions/links.
 import { createHmac, randomBytes } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { PrismaClient } from "@prisma/client";
 import { hashPassword, MIN_PASSWORD_LENGTH } from "../src/lib/password.mjs";
+import { docxFileToMarkdown, summaryFromMarkdown } from "../src/lib/knowledge/docx.mjs";
+import {
+  AMICO_KNOWLEDGE_ALL_SLUGS,
+  AMICO_KNOWLEDGE_RECORDING_SEEDS,
+  AMICO_KNOWLEDGE_SEEDS,
+} from "./knowledge-seed-data.mjs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DOCS_DIR = path.join(__dirname, "..", "public", "docs", "amico");
 
 const prisma = new PrismaClient();
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -104,6 +116,133 @@ async function seedAdmins() {
   }
 }
 
+async function seedKnowledgeLibrary() {
+  const amico = await prisma.tenant.findUnique({ where: { slug: "amico" } });
+  if (!amico) {
+    console.warn("[seed] AMICO tenant missing; skipping knowledge library seed.");
+    return;
+  }
+
+  const removed = await prisma.knowledgeDocument.deleteMany({
+    where: {
+      tenantId: amico.id,
+      slug: { notIn: [...AMICO_KNOWLEDGE_ALL_SLUGS] },
+    },
+  });
+  if (removed.count > 0) {
+    console.log(`[seed] Removed ${removed.count} non-canonical knowledge doc(s) outside the AMICO library catalog.`);
+  }
+
+  for (const item of AMICO_KNOWLEDGE_SEEDS) {
+    const filePath = path.join(DOCS_DIR, item.publicFile);
+    if (!fs.existsSync(filePath)) {
+      console.warn(`[seed] Missing knowledge file ${item.publicFile}; skipping ${item.slug}.`);
+      continue;
+    }
+    const fileBytes = fs.readFileSync(filePath);
+    const markdown = await docxFileToMarkdown(filePath);
+    const summary = item.summary || summaryFromMarkdown(markdown, item.title);
+
+    const existing = await prisma.knowledgeDocument.findUnique({
+      where: { tenantId_slug: { tenantId: amico.id, slug: item.slug } },
+    });
+
+    const base = {
+      title: item.title,
+      category: item.category,
+      division: item.division,
+      sortOrder: item.sortOrder,
+      fileName: item.publicFile,
+      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      fileSize: fileBytes.length,
+    };
+
+    if (!existing) {
+      await prisma.knowledgeDocument.create({
+        data: {
+          tenantId: amico.id,
+          slug: item.slug,
+          summary,
+          contentMarkdown: markdown,
+          fileBytes,
+          ...base,
+        },
+      });
+      console.log(`[seed] Knowledge doc created: ${item.slug}`);
+      continue;
+    }
+
+    if (existing.adminEdited) {
+      await prisma.knowledgeDocument.update({
+        where: { id: existing.id },
+        data: {
+          title: item.title,
+          category: item.category,
+          division: item.division,
+          sortOrder: item.sortOrder,
+        },
+      });
+      console.log(`[seed] Knowledge doc metadata refreshed (admin-edited, content preserved): ${item.slug}`);
+      continue;
+    }
+
+    await prisma.knowledgeDocument.update({
+      where: { id: existing.id },
+      data: {
+        ...base,
+        summary,
+        contentMarkdown: markdown,
+        fileBytes,
+      },
+    });
+    console.log(`[seed] Knowledge doc upserted: ${item.slug}`);
+  }
+
+  for (const item of AMICO_KNOWLEDGE_RECORDING_SEEDS) {
+    const existing = await prisma.knowledgeDocument.findUnique({
+      where: { tenantId_slug: { tenantId: amico.id, slug: item.slug } },
+    });
+
+    const data = {
+      title: item.title,
+      category: item.category,
+      division: item.division,
+      sortOrder: item.sortOrder,
+      summary: item.summary,
+      contentMarkdown: "",
+      fileName: null,
+      mimeType: null,
+      fileSize: null,
+      fileBytes: null,
+      externalUrl: existing?.externalUrl ?? null,
+    };
+
+    if (!existing) {
+      await prisma.knowledgeDocument.create({
+        data: { tenantId: amico.id, slug: item.slug, ...data },
+      });
+      console.log(`[seed] Knowledge recording slot created: ${item.slug}`);
+    } else if (existing.adminEdited) {
+      await prisma.knowledgeDocument.update({
+        where: { id: existing.id },
+        data: {
+          title: item.title,
+          category: item.category,
+          division: item.division,
+          sortOrder: item.sortOrder,
+        },
+      });
+      console.log(`[seed] Knowledge recording metadata refreshed: ${item.slug}`);
+    } else {
+      await prisma.knowledgeDocument.update({
+        where: { id: existing.id },
+        data: { ...data, externalUrl: existing.externalUrl },
+      });
+      console.log(`[seed] Knowledge recording slot upserted: ${item.slug}`);
+    }
+  }
+}
+
 async function purge() {
   const days = Number(process.env.LOG_RETENTION_DAYS ?? "");
   const retentionDays = Number.isFinite(days) && days > 0 ? days : 730;
@@ -125,6 +264,7 @@ async function purge() {
 async function main() {
   await seedTenants();
   await seedAdmins();
+  await seedKnowledgeLibrary();
   await purge();
 }
 

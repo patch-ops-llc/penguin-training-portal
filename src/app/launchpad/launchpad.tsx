@@ -344,6 +344,13 @@ export function Launchpad({
             <Link href="/account" className="text-ink-soft hover:text-ink hover:underline" title="Account settings">
               {user.name ?? user.email}
             </Link>
+            <Link
+              href="/knowledge"
+              data-testid="nav-knowledge-link"
+              className="rounded-md border border-line px-2.5 py-1 font-penguin text-[12.5px] font-semibold text-ink-soft hover:bg-surface-subtle hover:text-ink"
+            >
+              Knowledge Library
+            </Link>
             {isAdmin ? (
               <Link
                 href="/admin"
@@ -398,6 +405,13 @@ export function Launchpad({
               <kbd className="rounded border border-line bg-surface-subtle px-1.5 py-0.5 text-[11.5px] font-semibold text-ink">H</kbd> for{" "}
               {tenant.name} process callouts, or use <strong className="font-semibold text-ink">Show me</strong> whenever you want guided help.
             </p>
+            <Link
+              href="/knowledge"
+              data-testid="launchpad-knowledge-cta"
+              className="mt-4 inline-flex items-center gap-2 rounded-md bg-penguin px-4 py-2 font-penguin text-[13px] font-semibold text-white hover:bg-penguin-strong"
+            >
+              Open Knowledge Library — official guides &amp; handover docs
+            </Link>
           </div>
           <div className="min-w-[240px] rounded-[10px] border border-line bg-surface-subtle px-5 py-4">
             <div className="text-[12px] font-medium text-ink-muted">Required curriculum progress</div>
