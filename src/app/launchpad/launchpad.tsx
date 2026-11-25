@@ -6,7 +6,8 @@ import { TenantLockup } from "@/components/brand";
 import { AMICO_BRAND, TenantLogo } from "@/components/tenant-logo";
 import { emitEvent } from "@/lib/beacon";
 import { hasSavedSession } from "@/store/session";
-import type { TrainingModuleMeta, TrainingTrackMeta } from "@/tenants/types";
+import { AMICO_DIVISIONS } from "@/tenants/catalog";
+import type { TrainingModuleMeta, TrainingTrackCategory, TrainingTrackMeta } from "@/tenants/types";
 import { switchActiveTenantAction } from "./actions";
 
 const emptySubscribe = () => () => {};
@@ -20,6 +21,13 @@ export interface ModuleProgressSnapshot {
 }
 
 const ROLE_FILTERS = ["All roles", "Sales Rep", "Inside Sales Rep", "Estimator", "Sales Manager / NSM", "Project Manager", "Executive"] as const;
+
+const TRACK_CATEGORIES: { id: "all" | TrainingTrackCategory; label: string }[] = [
+  { id: "all", label: "All Tracks" },
+  { id: "core", label: "Core HubSpot" },
+  { id: "division-quoting", label: "Division Quoting Guides" },
+  { id: "division-handover", label: "Division Handovers" },
+];
 
 export function Launchpad({
   user,
@@ -46,6 +54,8 @@ export function Launchpad({
   progressMap: Record<string, ModuleProgressSnapshot>;
 }) {
   const [roleFilter, setRoleFilter] = useState<string>("All roles");
+  const [trackCategory, setTrackCategory] = useState<"all" | TrainingTrackCategory>("all");
+  const [quotingDivision, setQuotingDivision] = useState<string>("All divisions");
   const [query, setQuery] = useState("");
   const [openTrackIds, setOpenTrackIds] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(tracks.map((t) => [t.id, true])),
@@ -86,8 +96,21 @@ export function Launchpad({
     return hay.includes(q);
   };
 
-  const requiredTracks = tracks.filter((t) => requiredTrackIds.includes(t.id));
-  const optionalTracks = tracks.filter((t) => !requiredTrackIds.includes(t.id));
+  const matchesCategory = (track: TrainingTrackMeta) => {
+    if (trackCategory === "all") return true;
+    const cat =
+      track.category ??
+      (track.id === "amico-hubspot-101" ? "core" : track.id === "amico-security-fence" ? "division-handover" : "division-quoting");
+    if (cat !== trackCategory) return false;
+    if (trackCategory === "division-quoting" && quotingDivision !== "All divisions" && track.division !== quotingDivision) {
+      return false;
+    }
+    return true;
+  };
+
+  const categoryTracks = tracks.filter(matchesCategory);
+  const requiredTracks = categoryTracks.filter((t) => requiredTrackIds.includes(t.id));
+  const optionalTracks = categoryTracks.filter((t) => !requiredTrackIds.includes(t.id));
 
   // Overall required-module completion stats
   const requiredModules = (requiredTracks.length > 0 ? requiredTracks : tracks).flatMap((t) =>
@@ -381,8 +404,50 @@ export function Launchpad({
           </div>
         </section>
 
+        {/* Track category + division quoting filters */}
+        <div className="mt-7 space-y-3" data-testid="launchpad-track-filters">
+          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter training tracks by category">
+            {TRACK_CATEGORIES.map((cat) => {
+              const active = trackCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  data-testid={`track-category-${cat.id}`}
+                  onClick={() => setTrackCategory(cat.id)}
+                  className={`rounded-full px-3 py-1.5 text-[12.5px] font-medium transition ${
+                    active ? "bg-brand text-white" : "border border-line bg-surface text-ink-soft hover:bg-surface-sunken"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+          {trackCategory === "division-quoting" ? (
+            <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter division quoting guides">
+              {["All divisions", ...AMICO_DIVISIONS].map((div) => {
+                const active = quotingDivision === div;
+                return (
+                  <button
+                    key={div}
+                    type="button"
+                    data-testid={`quoting-division-${div.replaceAll(/[^a-zA-Z0-9]+/g, "-").toLowerCase()}`}
+                    onClick={() => setQuotingDivision(div)}
+                    className={`rounded-full px-3 py-1.5 text-[12px] font-medium transition ${
+                      active ? "bg-penguin text-white" : "border border-line bg-surface text-ink-soft hover:bg-surface-sunken"
+                    }`}
+                  >
+                    {div}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+
         {/* Role filter pills + Search */}
-        <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter modules by job role">
             {ROLE_FILTERS.map((rf) => {
               const active = roleFilter === rf;

@@ -1,4 +1,8 @@
+import { AMICO_QUOTING_TRACKS } from "@/curriculum/amico/quoting/tracks";
 import type { TrainingModuleMeta, TrainingTrackMeta } from "./types";
+import { COMMON_DONTS, COMMON_DOS } from "./catalog-shared";
+
+export { COMMON_DOS, COMMON_DONTS };
 
 export const AMICO_DIVISIONS = [
   "Security Fence",
@@ -20,23 +24,11 @@ export const AMICO_JOB_ROLES = [
   "Executive",
 ] as const;
 
-const COMMON_DOS = [
-  "Always search HubSpot first before creating a Contact, Company, or Deal.",
-  "Open the Company and check the Cross-Division Activity Card and owner before calling a customer.",
-  "Log every call, Outlook email, and meeting on the Deal timeline with Contact + Company + Deal associations.",
-  "Keep Deal stage, amount, and close date current so forecasts stay accurate.",
-];
-
-const COMMON_DONTS = [
-  "Never merge or delete duplicate Contacts or Companies by hand — escalate to your NSM or Penguin Strategies.",
-  "Never edit Epicor Quotes, Paperless Parts quotes, MS Access quotes, or Workbook quotes directly in HubSpot.",
-  "Never modify another division's records or edit the read-only Global shadow pipeline.",
-];
-
 export const AMICO_TRACKS: TrainingTrackMeta[] = [
   {
     id: "amico-hubspot-101",
     tenantSlug: "amico",
+    category: "core",
     title: "AMICO HubSpot 101: Core CRM & Cross-Division Selling",
     subtitle: "Required Go-Live Foundation · All 8 Divisions",
     division: "All Divisions",
@@ -135,6 +127,7 @@ export const AMICO_TRACKS: TrainingTrackMeta[] = [
   {
     id: "amico-security-fence",
     tenantSlug: "amico",
+    category: "division-handover",
     title: "AMICO Security Fence: Pipeline, Estimating & PM Handoff",
     subtitle: "Division Track · Security Fence Team & Security PM",
     division: "Security Fence",
@@ -229,6 +222,7 @@ export const AMICO_TRACKS: TrainingTrackMeta[] = [
       },
     ],
   },
+  ...AMICO_QUOTING_TRACKS,
 ];
 
 /** Fallback scaffold track for non-AMICO tenants created dynamically via Penguin Super-Admin. */
