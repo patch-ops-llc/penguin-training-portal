@@ -6,7 +6,10 @@ import { useShell } from "@/store/store";
 import type { Notification } from "@/tenants/types";
 import { relative } from "./format";
 import { Icon, type IconName } from "./icons";
-import { A, AiPill, Avatar, cx, Menu, MenuItem, Tag, useClickOutside } from "./ui";
+import { BreezeCopilotPanel } from "./components/breeze-copilot-panel";
+import { PreferencesModal } from "./components/preferences-modal";
+import { SupportHelpDrawer } from "./components/support-help-drawer";
+import { A, Avatar, cx, Menu, MenuItem, Tag, useClickOutside } from "./ui";
 
 type NavItem = { to: string; label: string; icon: IconName; testId: string };
 type NavGroup = { id: string; group: string; icon: IconName; items: NavItem[] };
@@ -192,6 +195,7 @@ function Sidebar() {
                           key={item.to}
                           to={item.to}
                           data-testid={item.testId}
+                          data-tour={item.testId}
                           className={cx(
                             "relative mx-1.5 mt-0.5 flex h-8 items-center gap-2.5 whitespace-nowrap rounded-[4px] px-2.5 text-[13px] transition-colors",
                             active
@@ -328,6 +332,7 @@ function Search() {
         placeholder="Find in HubSpot"
         aria-label="Find in HubSpot"
         data-testid="global-search"
+        data-tour="global-search"
         className="h-8 w-full rounded-[4px] border border-[#3e5266] bg-[#333333] pl-8 pr-14 text-[13px] text-white placeholder:text-[#99acc2] focus:border-[#006162] focus:bg-white focus:text-[#33475b] focus:outline-none focus:placeholder:text-[#7c98b6]"
       />
       <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-[3px] border border-white/15 bg-[#333333]/80 px-1.5 py-0.5 text-[10.5px] font-medium text-[#cbd6e2]">
@@ -463,87 +468,33 @@ function GlobalQuickCreate() {
   );
 }
 
-function BreezeCopilotButton() {
-  const { world, persona } = useShell();
-  const openDeals = world.deals.filter((d) => !d.readOnly && d.ownerId === persona.id);
-  const openTasks = world.tasks.filter((t) => t.status === "open" && t.ownerId === persona.id);
-
+function BreezeCopilotButton({ onOpen }: { onOpen: () => void }) {
   return (
-    <Menu
-      align="right"
-      width={340}
-      menuTestId="breeze-copilot-panel"
-      button={({ toggle }) => (
-        <button
-          type="button"
-          onClick={toggle}
-          data-testid="breeze-copilot-btn"
-          className="inline-flex h-7 items-center gap-1.5 rounded-[4px] border border-[#516f90]/70 bg-[#333333] px-2.5 text-[12px] font-semibold text-white hover:bg-[#33475b]"
-        >
-          <Icon name="sparkle" size={13} className="text-[#ff8fb1]" />
-          <span>Breeze Assistant</span>
-        </button>
-      )}
+    <button
+      type="button"
+      onClick={onOpen}
+      data-testid="breeze-copilot-btn"
+      data-tour="breeze-copilot-btn"
+      className="inline-flex h-7 items-center gap-1.5 rounded-[4px] border border-[#516f90]/70 bg-[#333333] px-2.5 text-[12px] font-semibold text-white hover:bg-[#33475b]"
     >
-      {() => (
-        <div className="px-4 py-3 text-[12.5px]">
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-[#33475b]">Breeze Copilot</span>
-            <AiPill />
-          </div>
-          <p className="mt-1.5 text-[#516f90]">
-            Daily brief for <strong className="text-[#33475b]">{persona.name}</strong> ({persona.division}):
-          </p>
-          <ul className="mt-2 space-y-1.5 rounded-[4px] border border-[#dfe3eb] bg-[#f5f8fa] p-2.5 text-[12px]">
-            <li>
-              • <strong>{openDeals.length}</strong> active division deals in your pipeline
-            </li>
-            <li>
-              • <strong>{openTasks.length}</strong> open follow-up / estimating tasks assigned
-            </li>
-            <li>• Remember to check Cross-Division Summary before outbound outreach</li>
-          </ul>
-        </div>
-      )}
-    </Menu>
+      <Icon name="sparkle" size={13} className="text-[#ff8fb1]" />
+      <span>Breeze Assistant</span>
+    </button>
   );
 }
 
-function HelpButton() {
+function HelpButton({ onOpen }: { onOpen: () => void }) {
   return (
-    <Menu
-      align="right"
-      width={330}
-      button={({ toggle }) => (
-        <button
-          type="button"
-          onClick={toggle}
-          aria-label="HubSpot Help & AMICO Quoting Guide"
-          data-testid="help-menu"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#cbd6e2] hover:bg-[#444444] hover:text-white"
-        >
-          <Icon name="help" size={17} />
-        </button>
-      )}
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label="HubSpot Help & AMICO Enablement"
+      data-testid="help-menu"
+      data-tour="help-menu"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#cbd6e2] hover:bg-[#444444] hover:text-white"
     >
-      {() => (
-        <div className="px-4 py-3 text-[12px] text-[#33475b]">
-          <p className="text-[13px] font-semibold">AMICO HubSpot Reference</p>
-          <p className="mt-1 text-[#516f90]">Quoting Decision Tree across divisions:</p>
-          <ul className="mt-2 space-y-1.5 border-t border-[#eaf0f6] pt-2">
-            <li>
-              <strong>Commerce &gt; Quotes:</strong> Solar, Global, Groenveld-BEKA (native HubSpot quote + e-sign)
-            </li>
-            <li>
-              <strong>Workbook Ingestion:</strong> Security Fence, Architecture, FRP (Rev 1 / Rev 2 updates Deal)
-            </li>
-            <li>
-              <strong>CRM &gt; Epicor Quotes:</strong> Industrials, Building Products, Perforated &amp; Seasafe (read-only ERP sync)
-            </li>
-          </ul>
-        </div>
-      )}
-    </Menu>
+      <Icon name="help" size={17} />
+    </button>
   );
 }
 
@@ -580,6 +531,7 @@ function Bell() {
         onClick={toggle}
         aria-label={`Notifications, ${unread} unread`}
         data-testid="bell"
+        data-tour="bell"
         className="relative inline-flex h-8 w-8 items-center justify-center rounded-full text-[#cbd6e2] hover:bg-[#444444] hover:text-white"
       >
         <Icon name="bell" size={17} />
@@ -624,22 +576,24 @@ function Bell() {
   );
 }
 
-function SettingsGear() {
+function SettingsGear({ onOpen }: { onOpen: () => void }) {
   const { route } = useShell();
   const active = route.segments[0] === "profile";
   return (
-    <A
-      to="/profile"
+    <button
+      type="button"
+      onClick={onOpen}
       aria-label="Profile & Preferences"
       title="Profile & Preferences"
       data-testid="settings-gear"
+      data-tour="settings-gear"
       className={cx(
         "inline-flex h-8 w-8 items-center justify-center rounded-full text-[#cbd6e2] hover:bg-[#444444] hover:text-white",
         active && "bg-[#33475b] text-white",
       )}
     >
       <Icon name="settings" size={17} />
-    </A>
+    </button>
   );
 }
 
@@ -709,6 +663,24 @@ function AccountMenu() {
 }
 
 export function Chrome({ children }: { children: React.ReactNode }) {
+  const { dispatch } = useShell();
+  const [breezeOpen, setBreezeOpen] = useState(false);
+  const [prefsOpen, setPrefsOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+
+  const openBreeze = () => {
+    setBreezeOpen(true);
+    dispatch({ t: "flag", k: "breeze.panelOpened" });
+  };
+  const openPrefs = () => {
+    setPrefsOpen(true);
+    dispatch({ t: "flag", k: "prefs.modalOpened" });
+  };
+  const openHelp = () => {
+    setHelpOpen(true);
+    dispatch({ t: "flag", k: "help.opened" });
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-[#333333]">
       <header
@@ -727,10 +699,10 @@ export function Chrome({ children }: { children: React.ReactNode }) {
         <GlobalQuickCreate />
 
         <div className="ml-auto flex items-center gap-1">
-          <BreezeCopilotButton />
+          <BreezeCopilotButton onOpen={openBreeze} />
           <span className="mx-1 h-4 w-px bg-white/15" aria-hidden="true" />
-          <HelpButton />
-          <SettingsGear />
+          <HelpButton onOpen={openHelp} />
+          <SettingsGear onOpen={openPrefs} />
           <Bell />
           <span className="mx-1 h-4 w-px bg-white/15" aria-hidden="true" />
           <AccountMenu />
@@ -738,10 +710,18 @@ export function Chrome({ children }: { children: React.ReactNode }) {
       </header>
       <div className="flex min-h-0 flex-1">
         <Sidebar />
-        <main className="hs-scroll relative min-w-0 flex-1 overflow-y-auto bg-[#f0f0f0]" data-testid="shell-main" id="shell-main">
+        <main
+          className="hs-scroll relative min-w-0 flex-1 overflow-y-auto bg-[#f0f0f0]"
+          data-testid="shell-main"
+          data-tour="shell-main"
+          id="shell-main"
+        >
           {children}
         </main>
       </div>
+      <BreezeCopilotPanel open={breezeOpen} onClose={() => setBreezeOpen(false)} />
+      <PreferencesModal open={prefsOpen} onClose={() => setPrefsOpen(false)} />
+      <SupportHelpDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

@@ -25,7 +25,8 @@ export async function walkToCompletion(page: Page): Promise<number> {
   let steps = 0;
   // Allow initial mount useSeen effects to settle
   await page.waitForTimeout(50);
-  while ((await page.getByTestId("training-step-count").textContent()) !== "Completed") {
+  const isDone = (text: string | null) => text === "Completed" || text === "Terminé";
+  while (!isDone(await page.getByTestId("training-step-count").textContent())) {
     const before = await page.getByTestId("training-step-count").textContent();
     try {
       await page.getByTestId("training-show-me").click({ timeout: 1500 });

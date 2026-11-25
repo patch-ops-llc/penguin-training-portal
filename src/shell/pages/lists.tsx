@@ -728,6 +728,7 @@ export function DealsIndex() {
                 type="button"
                 onClick={() => dispatch({ t: "deal.setLayout", board: true })}
                 data-testid="layout-board"
+                data-tour="layout-board"
                 title="Board view"
                 className={cx(
                   "inline-flex h-8 items-center gap-1.5 px-2.5 text-[12.5px] font-semibold",
@@ -745,6 +746,7 @@ export function DealsIndex() {
                 onChange={(e) => dispatch({ t: "deal.selectPipeline", pipelineId: e.target.value })}
                 aria-label="Select deal pipeline"
                 data-testid="pipeline-selector"
+                data-tour="pipeline-selector"
                 className="hs-input !h-8 !bg-white font-semibold text-[#006162]"
               >
                 {pack.pipelines.map((p) => (

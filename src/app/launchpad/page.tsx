@@ -3,6 +3,7 @@ import { requireUser, resolveActiveTenant } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getTenantTracks } from "@/tenants/catalog";
 import { tenantPackVersions } from "@/tenants/server";
+import { LocaleProvider } from "@/shell/locale";
 import { Launchpad, type ModuleProgressSnapshot } from "./launchpad";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +61,7 @@ export default async function LaunchpadPage() {
   const visibleTracks = user.trackLocked && user.role === "TRAINEE" ? tracks.filter((t) => assignedIds.includes(t.id)) : tracks;
 
   return (
+    <LocaleProvider>
     <Launchpad
       user={{
         email: user.email,
@@ -80,5 +82,6 @@ export default async function LaunchpadPage() {
       packVersions={versions}
       progressMap={progressMap}
     />
+    </LocaleProvider>
   );
 }

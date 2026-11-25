@@ -7,6 +7,7 @@ const ALL_AMICO_MODULES = [
   { trackId: "amico-hubspot-101", moduleId: "working-deals-logging" },
   { trackId: "amico-hubspot-101", moduleId: "quoting-routes-epicor" },
   { trackId: "amico-hubspot-101", moduleId: "projects-post-award" },
+  { trackId: "amico-hubspot-101", moduleId: "preferences-breeze-help" },
   { trackId: "amico-security-fence", moduleId: "sf-lead-to-deal" },
   { trackId: "amico-security-fence", moduleId: "sf-estimating-bidding" },
   { trackId: "amico-security-fence", moduleId: "sf-quote-ingestion-bid" },

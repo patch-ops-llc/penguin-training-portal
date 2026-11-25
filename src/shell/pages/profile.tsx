@@ -60,7 +60,7 @@ export function ProfilePage() {
             </p>
           </div>
         </div>
-        <Button variant="primary" onClick={save} data-testid="save-profile-btn">
+        <Button variant="primary" onClick={save} data-testid="save-profile-btn" data-tour="save-profile-btn">
           Save preferences
         </Button>
       </header>

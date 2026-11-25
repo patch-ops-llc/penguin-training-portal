@@ -11,6 +11,9 @@ import { CompletionCard } from "./completion-card";
 import "./hubspot.css";
 import { RecordPreviewHost } from "./record-preview-drawer";
 import { Routes } from "./routes";
+import { ExtOrderProvider } from "./ext-order";
+import { LocaleProvider } from "./locale";
+import { SpotlightTour } from "./spotlight-tour";
 import { TrainingBar } from "./training-bar";
 import { cx } from "./ui";
 
@@ -36,6 +39,7 @@ function fetchPack(tenantSlug: string, trackId: string, version: string): Promis
 
 function Frame() {
   const { route, highlight, completionOpen } = useShell();
+  const [spotlightMinimized, setSpotlightMinimized] = useState(false);
   return (
     <div
       className={cx("hs-app flex h-screen min-w-[1180px] flex-col overflow-hidden", highlight && "px-highlight")}
@@ -47,7 +51,8 @@ function Frame() {
       </Chrome>
       <RecordPreviewHost />
       {highlight ? <div className="px-dim" aria-hidden="true" /> : null}
-      <TrainingBar />
+      <SpotlightTour minimized={spotlightMinimized} onToggleMinimize={() => setSpotlightMinimized(true)} />
+      <TrainingBar spotlightMinimized={spotlightMinimized} onSpotlightMinimizedChange={setSpotlightMinimized} />
       {completionOpen ? <CompletionCard /> : null}
     </div>
   );
@@ -118,8 +123,12 @@ export function ShellApp({
   }
 
   return (
-    <ShellProvider key={`${tenantSlug}/${trackId}`} pack={loaded.pack} version={packVersion} initial={loaded.saved} initialLocation={loaded.location}>
-      <Frame />
-    </ShellProvider>
+    <LocaleProvider>
+      <ShellProvider key={`${tenantSlug}/${trackId}`} pack={loaded.pack} version={packVersion} initial={loaded.saved} initialLocation={loaded.location}>
+        <ExtOrderProvider>
+          <Frame />
+        </ExtOrderProvider>
+      </ShellProvider>
+    </LocaleProvider>
   );
 }

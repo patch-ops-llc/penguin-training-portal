@@ -26,11 +26,11 @@ test("Launchpad division quoting filters render eight tracks", async ({ page }) 
 test("Quoting guide reference drawer opens on division quoting modules", async ({ page }) => {
   await signIn(page);
   await openModule(page, "amico-quoting-industrial", "ind-quoting-workflow");
-  await page.getByTestId("quoting-guide-open").click();
-  await expect(page.getByTestId("quoting-guide-drawer")).toBeVisible();
-  await expect(page.getByText("Before you quote")).toBeVisible();
-  await page.getByTestId("quoting-guide-close").click();
-  await expect(page.getByTestId("quoting-guide-drawer")).not.toBeVisible();
+  await page.getByTestId("training-guide-open").click();
+  await expect(page.getByTestId("reference-guide-drawer")).toBeVisible();
+  await expect(page.getByTestId("reference-checklist")).toBeVisible();
+  await page.getByTestId("reference-guide-close").click();
+  await expect(page.getByTestId("reference-guide-drawer")).not.toBeVisible();
 });
 
 test("all eight division quoting tracks complete interactively", async ({ page }) => {

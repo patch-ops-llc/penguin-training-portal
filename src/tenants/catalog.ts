@@ -122,6 +122,24 @@ export const AMICO_TRACKS: TrainingTrackMeta[] = [
         dos: COMMON_DOS,
         donts: COMMON_DONTS,
       },
+      {
+        id: "preferences-breeze-help",
+        code: "101-M6",
+        title: "Preferences, Notifications, Breeze Assistant & Getting Help",
+        summary:
+          "Configure General / Notifications & Email Preferences, use HubSpot Support & AMICO enablement help, and ask Breeze Assistant division-aware questions.",
+        objective: "Set self-serve notification preferences and know first-line help paths before go-live.",
+        minutes: 4,
+        roleTags: ["Sales Rep", "Inside Sales Rep", "Estimator", "Sales Manager / NSM", "Project Manager"],
+        defaultPersonaId: "ind-rep",
+        takeaways: [
+          "Task reminders, @mentions, and deal stage alerts live under Settings → Notifications & Email Preferences.",
+          "Breeze Assistant answers AMICO-specific CRM and quoting guardrails — escalate duplicate merges to your NSM.",
+          "HubSpot Help links Knowledge Base articles; Penguin Training Portal modules include written step-by-step checklists.",
+        ],
+        dos: COMMON_DOS,
+        donts: COMMON_DONTS,
+      },
     ],
   },
   {

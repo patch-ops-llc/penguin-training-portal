@@ -8,6 +8,7 @@ import { emitEvent } from "@/lib/beacon";
 import { hasSavedSession } from "@/store/session";
 import { AMICO_DIVISIONS } from "@/tenants/catalog";
 import type { TrainingModuleMeta, TrainingTrackCategory, TrainingTrackMeta } from "@/tenants/types";
+import { LocaleToggle } from "@/shell/locale";
 import { switchActiveTenantAction } from "./actions";
 
 const emptySubscribe = () => () => {};
@@ -306,6 +307,7 @@ export function Launchpad({
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-4 px-8 py-4">
           <TenantLockup tenantSlug={tenant.slug} tenantName={tenant.name} accentColor={tenant.accentColor} height={28} />
           <div className="flex flex-wrap items-center gap-3 text-[13px] text-ink-muted">
+            <LocaleToggle className="flex overflow-hidden rounded-md border border-line bg-surface-sunken" />
             {user.role === "PENGUIN_ADMIN" && allTenants.length > 1 ? (
               <form action={switchActiveTenantAction} className="flex items-center gap-1.5">
                 <input type="hidden" name="returnTo" value="/launchpad" />
