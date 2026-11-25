@@ -125,8 +125,24 @@ export type Action =
           | "customerPo"
           | "amicoOrderNumber"
           | "poReceivedDate"
+          | "quoteNumber"
+          | "quoteRevision"
+          | "quoteDate"
+          | "quotedLeadTimeWeeks"
+          | "expectedPoDate"
+          | "externalQuotePdf"
         >
       >;
+      at: number;
+    }
+  | {
+      t: "deal.attachQuotePdf";
+      dealId: string;
+      fileName: string;
+      quoteNumber: string;
+      revision?: string;
+      amount?: number;
+      leadTimeWeeks?: number;
       at: number;
     }
   | { t: "deal.setStage"; dealId: string; stage: string; promptValues?: StagePromptValues; at: number }
@@ -836,6 +852,34 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       return;
     }
 
+    case "deal.attachQuotePdf": {
+      const deal = w.deals.find((d) => d.id === a.dealId);
+      if (!deal || deal.readOnly) return;
+      const at = iso(a.at);
+      deal.externalQuotePdf = a.fileName;
+      deal.externalQuoteSource = deal.externalQuoteSource ?? "External quoting tool (PDF)";
+      deal.quoteNumber = a.quoteNumber;
+      if (a.revision) deal.quoteRevision = a.revision;
+      if (a.amount != null) deal.amount = a.amount;
+      if (a.leadTimeWeeks != null) deal.quotedLeadTimeWeeks = a.leadTimeWeeks;
+      deal.quoteDate = at;
+      deal.lastActivityAt = at;
+      addActivity(w, {
+        at,
+        type: "note",
+        title: `Bid PDF attached: ${a.fileName}`,
+        body: `Quote ${a.quoteNumber}${a.revision ? ` ${a.revision}` : ""} recorded on the deal per Security Fence quoting guide (upload, not Revenue > Quotes).`,
+        byId: w.persona,
+        contactIds: deal.contactIds,
+        companyIds: [deal.companyId],
+        dealIds: [deal.id],
+        attachment: a.fileName,
+      });
+      w.flags[`pdf.${deal.id}.attached`] = true;
+      w.flags["deal.pdfAttached"] = true;
+      return;
+    }
+
     case "deal.ingestWorkbookQuote": {
       const deal = w.deals.find((d) => d.id === a.dealId);
       if (!deal || deal.readOnly) return;
@@ -947,6 +991,11 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       if (deal && deal.pipelineId === "security-mesh" && deal.stage === "mesh-quote-pending") {
         deal.stage = "mesh-quoted";
         deal.quoteDate = at;
+        deal.quoteNumber = quote.number;
+        if (!deal.quotedLeadTimeWeeks) {
+          const maxLead = quote.lineItems.reduce((max, l) => Math.max(max, l.leadDays), 0);
+          deal.quotedLeadTimeWeeks = Math.max(1, Math.round(maxLead / 7));
+        }
       }
       if (deal && deal.pipelineId === "industrials" && deal.stage === "ind-in-progress") {
         deal.stage = "ind-quoted";

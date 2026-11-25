@@ -1663,15 +1663,32 @@ export function DealRecord({ id }: { id: string }) {
                       <Prop label="Project / Handoff Required">{deal.handoffRequired ?? "—"}</Prop>
                     </dl>
                   </Card>
-                  <Card title="Quoting" testId="deal-quoting-card">
+                  <Card title="Security Fence Pipedrive Fields" testId="deal-quoting-card">
                     <dl className="grid grid-cols-2 gap-3 text-[13px]">
+                      <Prop label="Bid Date">{deal.bidDate ? shortDate(deal.bidDate) : "—"}</Prop>
+                      <Prop label="Project Address">{deal.projectAddress ?? "—"}</Prop>
+                      <Prop label="Market Segment">{deal.marketSegment ?? "—"}</Prop>
                       <Prop label="Quote Date">{deal.quoteDate ? shortDate(deal.quoteDate) : "—"}</Prop>
-                      <Prop label="Quoted Value">{money(deal.amount)}</Prop>
                       <Prop label="Quote Number">{deal.quoteNumber ?? "—"}</Prop>
                       <Prop label="Quoted Lead Time (weeks)">{deal.quotedLeadTimeWeeks ?? "—"}</Prop>
+                      <Prop label="Expected PO Date">{deal.expectedPoDate ? shortDate(deal.expectedPoDate) : "—"}</Prop>
+                      <Prop label="Quoted Value">{money(deal.amount)}</Prop>
                     </dl>
                   </Card>
                 </>
+              ) : null}
+
+              {deal.pipelineId === "security-mesh" ? (
+                <Card title="Security Fence & Mesh · Pipedrive Fields" testId="deal-pipedrive-fields-card">
+                  <dl className="grid grid-cols-2 gap-3 text-[13px]">
+                    <Prop label="Quote Date">{deal.quoteDate ? shortDate(deal.quoteDate) : "—"}</Prop>
+                    <Prop label="Quote Number">{deal.quoteNumber ?? "—"}</Prop>
+                    <Prop label="Quoted Lead Time (weeks)">{deal.quotedLeadTimeWeeks ?? "—"}</Prop>
+                    <Prop label="Quoted Value">{money(deal.amount)}</Prop>
+                    <Prop label="Customer PO">{deal.customerPo ?? "—"}</Prop>
+                    <Prop label="PO Received Date">{deal.poReceivedDate ? shortDate(deal.poReceivedDate) : "—"}</Prop>
+                  </dl>
+                </Card>
               ) : null}
 
               {/* Scheduled Open Tasks on Deal */}
@@ -2117,7 +2134,7 @@ export function DealRecord({ id }: { id: string }) {
             onToggle={() => setAttOpen((o) => !o)}
           />
           {attOpen ? (
-            <div className="mt-2 text-[12px] text-[#516f90]">
+            <div className="mt-2 space-y-2 text-[12px] text-[#516f90]">
               {deal.externalQuotePdf ? (
                 <div className="flex items-center gap-2 rounded-[4px] border border-[#dfe3eb] bg-[#f5f8fa] p-2 text-[#33475b]">
                   <Icon name="paperclip" size={14} className="shrink-0 text-[#006162]" />
@@ -2126,6 +2143,48 @@ export function DealRecord({ id }: { id: string }) {
               ) : (
                 <p>No files attached yet.</p>
               )}
+              {!isReadOnly && deal.pipelineId === "security-fence" && !deal.externalQuotePdf ? (
+                <Button
+                  size="sm"
+                  icon="upload"
+                  data-testid="attach-bid-pdf"
+                  onClick={() =>
+                    dispatch({
+                      t: "deal.attachQuotePdf",
+                      dealId: deal.id,
+                      fileName: "SFQ-2026-1184-Rev1.pdf",
+                      quoteNumber: "SFQ-2026-1184",
+                      revision: "Rev 1",
+                      amount: 468_000,
+                      leadTimeWeeks: 8,
+                      at: nowMs(),
+                    })
+                  }
+                >
+                  Upload bid PDF (Add → Upload)
+                </Button>
+              ) : null}
+              {!isReadOnly && deal.pipelineId === "security-fence" && deal.externalQuotePdf?.includes("Rev 1") ? (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  data-testid="attach-bid-pdf-rev2"
+                  onClick={() =>
+                    dispatch({
+                      t: "deal.attachQuotePdf",
+                      dealId: deal.id,
+                      fileName: "SFQ-2026-1184-Rev2.pdf",
+                      quoteNumber: "SFQ-2026-1184",
+                      revision: "Rev 2",
+                      amount: 485_000,
+                      leadTimeWeeks: 8,
+                      at: nowMs(),
+                    })
+                  }
+                >
+                  Attach revised bid PDF (same deal)
+                </Button>
+              ) : null}
             </div>
           ) : null}
         </div>
