@@ -34,6 +34,14 @@ enum ProgressStatus {
   COMPLETED
 }
 
+enum KnowledgeDocumentCategory {
+  CORE_GUIDE
+  DIVISION_HANDOVER
+  QUOTING_GUIDE
+  RECORDING
+  OTHER
+}
+
 model Tenant {
   id              String       @id @default(cuid())
   slug            String       @unique
@@ -51,6 +59,7 @@ model Tenant {
   trainingAttempts TrainingAttempt[]
   accessEvents     AccessEvent[]
   adminAudits      AdminAudit[]
+  knowledgeDocs    KnowledgeDocument[]
 }
 
 model User {
@@ -221,4 +230,31 @@ model AdminAudit {
 
   @@index([at])
   @@index([tenantId, at])
+}
+
+/// Official training guides, handover documents, and recording links for a tenant Knowledge Library.
+model KnowledgeDocument {
+  id              String                    @id @default(cuid())
+  tenantId        String
+  tenant          Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  slug            String
+  title           String
+  category        KnowledgeDocumentCategory
+  division        String?
+  summary         String                    @default("")
+  contentMarkdown String                    @default("")
+  fileName        String?
+  mimeType        String?
+  fileSize        Int?
+  fileBytes       Bytes?
+  externalUrl     String?
+  sortOrder       Int                       @default(0)
+  /// When true, seed runs will not overwrite content or file bytes for this row.
+  adminEdited     Boolean                   @default(false)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, category])
+  @@index([tenantId, sortOrder])
 }

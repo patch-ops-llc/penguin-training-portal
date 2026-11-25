@@ -3,8 +3,16 @@
 // 2. Ensures every ADMIN_EMAILS address has an active PENGUIN_ADMIN account.
 // 3. Purges access logs, attempts, and audits older than LOG_RETENTION_DAYS, plus expired sessions/links.
 import { createHmac, randomBytes } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { PrismaClient } from "@prisma/client";
 import { hashPassword, MIN_PASSWORD_LENGTH } from "../src/lib/password.mjs";
+import { docxFileToMarkdown, summaryFromMarkdown } from "../src/lib/knowledge/docx.mjs";
+import { AMICO_KNOWLEDGE_SEEDS } from "./knowledge-seed-data.mjs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DOCS_DIR = path.join(__dirname, "..", "public", "docs", "amico");
 
 const prisma = new PrismaClient();
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -104,6 +112,81 @@ async function seedAdmins() {
   }
 }
 
+async function seedKnowledgeLibrary() {
+  const amico = await prisma.tenant.findUnique({ where: { slug: "amico" } });
+  if (!amico) {
+    console.warn("[seed] AMICO tenant missing; skipping knowledge library seed.");
+    return;
+  }
+
+  for (const item of AMICO_KNOWLEDGE_SEEDS) {
+    const filePath = path.join(DOCS_DIR, item.publicFile);
+    if (!fs.existsSync(filePath)) {
+      console.warn(`[seed] Missing knowledge file ${item.publicFile}; skipping ${item.slug}.`);
+      continue;
+    }
+    const fileBytes = fs.readFileSync(filePath);
+    const markdown = await docxFileToMarkdown(filePath);
+    const summary = item.summary || summaryFromMarkdown(markdown, item.title);
+
+    const existing = await prisma.knowledgeDocument.findUnique({
+      where: { tenantId_slug: { tenantId: amico.id, slug: item.slug } },
+    });
+
+    const base = {
+      title: item.title,
+      category: item.category,
+      division: item.division,
+      sortOrder: item.sortOrder,
+      fileName: item.publicFile,
+      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      fileSize: fileBytes.length,
+    };
+
+    if (!existing) {
+      await prisma.knowledgeDocument.create({
+        data: {
+          tenantId: amico.id,
+          slug: item.slug,
+          summary,
+          contentMarkdown: markdown,
+          fileBytes,
+          ...base,
+        },
+      });
+      console.log(`[seed] Knowledge doc created: ${item.slug}`);
+      continue;
+    }
+
+    if (existing.adminEdited) {
+      await prisma.knowledgeDocument.update({
+        where: { id: existing.id },
+        data: {
+          title: item.title,
+          category: item.category,
+          division: item.division,
+          sortOrder: item.sortOrder,
+        },
+      });
+      console.log(`[seed] Knowledge doc metadata refreshed (admin-edited, content preserved): ${item.slug}`);
+      continue;
+    }
+
+    const needsContent = !existing.contentMarkdown?.trim() || !existing.fileBytes || existing.fileBytes.length === 0;
+
+    await prisma.knowledgeDocument.update({
+      where: { id: existing.id },
+      data: {
+        ...base,
+        summary: needsContent || !existing.summary ? summary : existing.summary,
+        contentMarkdown: needsContent ? markdown : existing.contentMarkdown,
+        fileBytes: needsContent ? fileBytes : existing.fileBytes,
+      },
+    });
+    console.log(`[seed] Knowledge doc upserted: ${item.slug}`);
+  }
+}
+
 async function purge() {
   const days = Number(process.env.LOG_RETENTION_DAYS ?? "");
   const retentionDays = Number.isFinite(days) && days > 0 ? days : 730;
@@ -125,6 +208,7 @@ async function purge() {
 async function main() {
   await seedTenants();
   await seedAdmins();
+  await seedKnowledgeLibrary();
   await purge();
 }
 

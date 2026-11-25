@@ -315,3 +315,14 @@ button:disabled {
 .px-highlight .px {
   z-index: 41;
 }
+
+/* ---------- Knowledge Library reader ---------- */
+
+@media print {
+  body {
+    background: #fff;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+}

@@ -7,6 +7,7 @@ export function AdminNav({ isPenguinAdmin }: { isPenguinAdmin: boolean }) {
   const pathname = usePathname();
   const items = [
     { href: "/admin", label: "Users & invites", exact: true },
+    { href: "/knowledge", label: "Knowledge library", exact: false },
     { href: "/admin/progress", label: "Completion matrix", exact: false },
     { href: "/admin/attempts", label: "Module attempts", exact: false },
     { href: "/admin/activity", label: "Access log", exact: false },
