@@ -16,6 +16,14 @@ const ALL_AMICO_MODULES = [
   { trackId: "amico-email", moduleId: "em-templates-snippets" },
   { trackId: "amico-email", moduleId: "em-quote-email-followup" },
   { trackId: "amico-email", moduleId: "em-marketing-email-analytics" },
+  { trackId: "amico-quoting-amf", moduleId: "amf-quoting-workflow" },
+  { trackId: "amico-quoting-architecture", moduleId: "arch-quoting-workflow" },
+  { trackId: "amico-quoting-building-products", moduleId: "bp-quoting-workflow" },
+  { trackId: "amico-quoting-frp", moduleId: "frp-quoting-workflow" },
+  { trackId: "amico-quoting-industrial", moduleId: "ind-quoting-workflow" },
+  { trackId: "amico-quoting-perforated", moduleId: "perf-quoting-workflow" },
+  { trackId: "amico-quoting-security-fence", moduleId: "sf-quoting-workflow" },
+  { trackId: "amico-quoting-security-mesh", moduleId: "mesh-quoting-workflow" },
 ] as const;
 
 test("every AMICO HubSpot 101 and Security Fence module walks cleanly to completion", async ({ page }) => {

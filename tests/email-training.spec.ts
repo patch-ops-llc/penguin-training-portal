@@ -13,6 +13,10 @@ test.describe("AMICO Email & Communications track", () => {
     await signIn(page);
     await expect(page.getByTestId("track-amico-email")).toBeVisible();
     await expect(page.getByTestId("title-link-amico-email-em-sales-email-logging")).toBeVisible();
+    await page.getByTestId("track-category-email").click();
+    await expect(page.getByTestId("track-amico-email")).toBeVisible();
+    await expect(page.getByTestId("track-amico-hubspot-101")).not.toBeVisible();
+    await page.getByTestId("track-category-all").click();
   });
 
   test("marketing email shell route renders AMICO campaign table", async ({ page }) => {

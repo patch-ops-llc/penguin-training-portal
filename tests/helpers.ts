@@ -35,7 +35,7 @@ export async function walkToCompletion(page: Page): Promise<number> {
     await expect(page.getByTestId("training-step-count")).not.toHaveText(before ?? "");
     await page.waitForTimeout(50);
     steps += 1;
-    if (steps > 15) throw new Error("Module did not reach Completed within 15 steps.");
+    if (steps > 20) throw new Error("Module did not reach Completed within 20 steps.");
   }
   return steps;
 }

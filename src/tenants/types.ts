@@ -496,6 +496,8 @@ export type TrainingModuleMeta = {
   donts: string[];
 };
 
+export type TrainingTrackCategory = "core" | "division-handover" | "division-quoting" | "email";
+
 export type TrainingTrackMeta = {
   id: string;
   tenantSlug: string;
@@ -503,6 +505,10 @@ export type TrainingTrackMeta = {
   subtitle: string;
   division: string;
   summary: string;
+  /** Launchpad grouping: core HubSpot 101, division handover tracks, or division quoting guides. */
+  category?: TrainingTrackCategory;
+  /** Division key for the Quoting Guide Reference drawer (defaults to `division`). */
+  quotingGuideKey?: string;
   restricted?: boolean;
   roleFilterTags: string[];
   modules: TrainingModuleMeta[];
