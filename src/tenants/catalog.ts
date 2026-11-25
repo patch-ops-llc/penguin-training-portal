@@ -229,6 +229,90 @@ export const AMICO_TRACKS: TrainingTrackMeta[] = [
       },
     ],
   },
+  {
+    id: "amico-email",
+    tenantSlug: "amico",
+    title: "AMICO Email & Communications",
+    subtitle: "1:1 Sales Email · Templates · Quotes · Marketing Campaigns",
+    division: "All Divisions",
+    summary:
+      "Send tracked Outlook emails from CRM records, use AMICO templates and snippets, deliver quotes by email, and review Marketing Email campaign analytics.",
+    roleFilterTags: ["Sales Rep", "Inside Sales Rep", "Sales Manager / NSM", "Estimator"],
+    modules: [
+      {
+        id: "em-sales-email-logging",
+        code: "EM-M1",
+        title: "1:1 Sales Email, Logging & Associated Records",
+        summary:
+          "Launch the Email composer from a Contact or Deal, verify Outlook sync, enable track/log options, send, and verify on the Emails activity tab.",
+        objective: "Send tracked 1:1 emails with Contact, Company, and Deal associations.",
+        minutes: 5,
+        roleTags: ["Sales Rep", "Inside Sales Rep"],
+        defaultPersonaId: "ind-rep",
+        takeaways: [
+          "Use Email quick actions on Contact, Company, and Deal records — not your inbox alone — so associations roll up.",
+          "Keep Track email opens & clicks and Log to CRM enabled for AMICO compliance reporting.",
+          "Filter the Activity timeline to Emails to audit Outlook-synced sends.",
+        ],
+        dos: COMMON_DOS,
+        donts: COMMON_DONTS,
+      },
+      {
+        id: "em-templates-snippets",
+        code: "EM-M2",
+        title: "Templates, Snippets & Standardized Follow-Ups",
+        summary:
+          "Insert AMICO quote follow-up templates and snippets into a 1:1 email, personalize contact/deal tokens, and send.",
+        objective: "Use HubSpot templates and snippets for consistent AMICO follow-ups.",
+        minutes: 4,
+        roleTags: ["Sales Rep", "Inside Sales Rep"],
+        defaultPersonaId: "ind-rep",
+        takeaways: [
+          "AMICO standardized templates cover intro, quote follow-up, submittal follow-up, and cross-division handoffs.",
+          "Snippets add Oracle pricing, lead time, and cross-division courtesy language without retyping.",
+          "Always personalize tokens for the contact and deal before sending.",
+        ],
+        dos: COMMON_DOS,
+        donts: COMMON_DONTS,
+      },
+      {
+        id: "em-quote-email-followup",
+        code: "EM-M3",
+        title: "Sending Quotes & Estimating Follow-Ups by Email",
+        summary:
+          "Compose quote delivery and estimating follow-up emails from an active Deal with quote link attachment and engagement tracking.",
+        objective: "Deliver HubSpot quotes via tracked email from the Deal record.",
+        minutes: 5,
+        roleTags: ["Sales Rep", "Inside Sales Rep", "Estimator"],
+        defaultPersonaId: "ind-rep",
+        takeaways: [
+          "Attach the HubSpot quote link chip so buyers land on the current revision.",
+          "Track opens and clicks to prioritize quote follow-up tasks.",
+          "Log every quote delivery on the Deal timeline for forecasting and handoffs.",
+        ],
+        dos: COMMON_DOS,
+        donts: COMMON_DONTS,
+      },
+      {
+        id: "em-marketing-email-analytics",
+        code: "EM-M4",
+        title: "Marketing Emails & Campaign Analytics",
+        summary:
+          "Navigate Marketing → Email, filter sent and draft AMICO division campaigns, inspect performance metrics, and create a draft campaign.",
+        objective: "Review marketing email performance and draft division campaigns.",
+        minutes: 4,
+        roleTags: ["Sales Rep", "Sales Manager / NSM"],
+        defaultPersonaId: "ind-rep",
+        takeaways: [
+          "Division marketing emails show Sent, Scheduled, and Draft statuses with open and click rates.",
+          "Use campaign metrics to time 1:1 sales follow-ups after broadcast sends.",
+          "Draft campaigns in HubSpot before scheduling division product announcements.",
+        ],
+        dos: COMMON_DOS,
+        donts: COMMON_DONTS,
+      },
+    ],
+  },
 ];
 
 /** Fallback scaffold track for non-AMICO tenants created dynamically via Penguin Super-Admin. */

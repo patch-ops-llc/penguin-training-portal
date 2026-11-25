@@ -108,6 +108,8 @@ test("multi-tenant RBAC, 403 cross-tenant isolation, invite flow, and TrainingPr
   const inviteForm = page.getByTestId("invite-form");
   const hs101Checkbox = inviteForm.locator("input[name=assignedTrackIds][value='amico-hubspot-101']");
   if (await hs101Checkbox.isChecked()) await hs101Checkbox.uncheck();
+  const emailTrackCheckbox = inviteForm.locator("input[name=assignedTrackIds][value='amico-email']");
+  if (await emailTrackCheckbox.isChecked()) await emailTrackCheckbox.uncheck();
   const sfCheckbox = inviteForm.locator("input[name=assignedTrackIds][value='amico-security-fence']");
   if (!(await sfCheckbox.isChecked())) await sfCheckbox.check();
   await inviteForm.locator("input[name=trackLocked]").check();
@@ -174,6 +176,7 @@ test("multi-tenant RBAC, 403 cross-tenant isolation, invite flow, and TrainingPr
   await expect(trPage.getByTestId("module-amico-security-fence-sf-lead-to-deal")).toBeVisible();
   // Unassigned HubSpot 101 track is hidden because trackLocked=true
   await expect(trPage.getByTestId("track-amico-hubspot-101")).toHaveCount(0);
+  await expect(trPage.getByTestId("track-amico-email")).toHaveCount(0);
 
   // TRAINEE gets 403 on /admin
   const trAdminRes = await trPage.goto("/admin");

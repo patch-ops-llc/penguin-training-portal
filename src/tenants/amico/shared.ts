@@ -1806,9 +1806,10 @@ export const AMICO_EXTENSIONS: Extension[] = [
   },
 ];
 
-export function buildAmicoPack(trackId: "amico-hubspot-101" | "amico-security-fence"): Pack {
+export function buildAmicoPack(trackId: "amico-hubspot-101" | "amico-security-fence" | "amico-email"): Pack {
   const track = AMICO_TRACKS.find((t) => t.id === trackId) ?? AMICO_TRACKS[0];
   const isSecurityFence = trackId === "amico-security-fence";
+  const isEmailTrack = trackId === "amico-email";
   return {
     tenantSlug: "amico",
     tenantName: "AMICO",
@@ -1835,7 +1836,7 @@ export function buildAmicoPack(trackId: "amico-hubspot-101" | "amico-security-fe
       quotes: true,
       workflows: true,
     },
-    defaultPersonaId: isSecurityFence ? "outside-rep" : "ind-rep",
+    defaultPersonaId: isSecurityFence ? "outside-rep" : isEmailTrack ? "ind-rep" : "ind-rep",
     personas: AMICO_PERSONAS,
     defaultProfile: AMICO_DEFAULT_PROFILE,
     pipelines: AMICO_PIPELINES,

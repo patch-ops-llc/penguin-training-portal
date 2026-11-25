@@ -12,6 +12,10 @@ const ALL_AMICO_MODULES = [
   { trackId: "amico-security-fence", moduleId: "sf-quote-ingestion-bid" },
   { trackId: "amico-security-fence", moduleId: "sf-award-pm-handoff" },
   { trackId: "amico-security-fence", moduleId: "sf-views-stuck-deals" },
+  { trackId: "amico-email", moduleId: "em-sales-email-logging" },
+  { trackId: "amico-email", moduleId: "em-templates-snippets" },
+  { trackId: "amico-email", moduleId: "em-quote-email-followup" },
+  { trackId: "amico-email", moduleId: "em-marketing-email-analytics" },
 ] as const;
 
 test("every AMICO HubSpot 101 and Security Fence module walks cleanly to completion", async ({ page }) => {

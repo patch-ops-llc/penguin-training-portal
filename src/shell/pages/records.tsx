@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { nowMs } from "@/lib/format";
+import { quoteTotals } from "@/store/quote-math";
 import { useSeen, useShell } from "@/store/store";
 import type { Activity, Deal, DealStage } from "@/tenants/types";
 import { Ext } from "../ext";
@@ -236,7 +237,10 @@ function ActivityTimelinePane({
               <button
                 key={f.id}
                 type="button"
-                onClick={() => setFilterKind(f.id)}
+                onClick={() => {
+                  setFilterKind(f.id);
+                  if (f.id === "email") dispatch({ t: "flag", k: "email.timeline.emailsTab" });
+                }}
                 data-testid={`activity-filter-${f.id}`}
                 className="hs-filter-pill !h-6 !px-2 !text-[11.5px]"
                 data-active={filterKind === f.id}
@@ -439,6 +443,13 @@ export function ContactRecord({ id }: { id: string }) {
   const deals = world.deals.filter((d) => d.contactIds.includes(contact.id));
   const activities = world.activities.filter((a) => a.contactIds?.includes(contact.id));
   const owner = pack.personas.find((p) => p.id === contact.ownerId);
+
+  useEffect(() => {
+    if (composerKind === "email") {
+      dispatch({ t: "flag", k: "email.composer.opened" });
+      dispatch({ t: "flag", k: `email.composer.${contact.id}` });
+    }
+  }, [composerKind, contact.id, dispatch]);
 
   return (
     <div className="hs-record-3pane" data-testid="contact-record">
@@ -685,6 +696,8 @@ export function ContactRecord({ id }: { id: string }) {
             companyIds: company ? [company.id] : [],
             dealIds: deals.map((d) => d.id),
             defaultEmailTo: contact.email,
+            contactFirstName: contact.firstName,
+            companyName: company?.name,
           }}
         />
       ) : null}
@@ -1284,11 +1297,19 @@ export function DealRecord({ id }: { id: string }) {
   const associatedContacts = world.contacts.filter((c) => deal.contactIds.includes(c.id));
   const epicorQuotes = world.epicorQuotes.filter((eq) => eq.dealId === deal.id);
   const nativeQuotes = world.quotes.filter((q) => q.dealId === deal.id);
+  const primaryQuote = nativeQuotes[0];
   const linkedProjects = world.projects.filter((p) => p.dealId === deal.id);
   const activities = world.activities.filter((a) => a.dealIds?.includes(deal.id));
   const openTasks = world.tasks.filter((t) => t.dealId === deal.id && t.status !== "done");
 
   const isDirty = draftAmount !== null || draftCloseDate !== null || draftBidDate !== null;
+
+  useEffect(() => {
+    if (composerKind === "email") {
+      dispatch({ t: "flag", k: "email.composer.opened" });
+      dispatch({ t: "flag", k: `email.composer.deal.${deal.id}` });
+    }
+  }, [composerKind, deal.id, dispatch]);
 
   function handleStageClick(st: DealStage) {
     if (isReadOnly || st.id === deal?.stage) return;
@@ -2160,6 +2181,15 @@ export function DealRecord({ id }: { id: string }) {
             companyIds: [deal.companyId],
             dealIds: [deal.id],
             defaultEmailTo: associatedContacts[0]?.email,
+            contactFirstName: associatedContacts[0]?.firstName,
+            companyName: primaryCompany?.name,
+            dealName: deal.name,
+            quoteId: primaryQuote?.id,
+            quoteLabel: primaryQuote?.number,
+            quoteNumber: primaryQuote?.number,
+            quoteTotal: primaryQuote ? money(quoteTotals(primaryQuote).total) : undefined,
+            closeDate: deal.closeDate,
+            division: pipeline?.division,
           }}
         />
       ) : null}

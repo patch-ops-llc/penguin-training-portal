@@ -1,0 +1,218 @@
+import { flag, has, type TrainingScript } from "@/curriculum/types";
+
+export const AMICO_EMAIL_SCRIPTS: Record<string, TrainingScript> = {
+  "em-sales-email-logging": {
+    moduleId: "em-sales-email-logging",
+    steps: [
+      {
+        id: "open-contact-email",
+        title: "Launch the Email composer from a Contact record",
+        hint: "Open Dana Holloway on CRM > Contacts and click the Email quick action. Confirm Outlook / Office 365 is connected.",
+        path: () => "/contacts/ct-dana",
+        done: (c) => has(c, "email.composer.ct-dana") || has(c, "email.composer.opened"),
+        script: () => [flag("email.composer.ct-dana"), flag("email.composer.opened")],
+      },
+      {
+        id: "open-deal",
+        title: "Open the active Deal for quote follow-up context",
+        hint: "Navigate to Redstone Supply — Q4 Bar Grating & Expanded Metal Stock.",
+        path: () => "/deals/dl-redstone-grating",
+        done: (c) => has(c, "seen.deal.dl-redstone-grating"),
+        script: () => [{ t: "persona", id: "ind-rep" }, flag("seen.deal.dl-redstone-grating")],
+      },
+      {
+        id: "enable-tracking",
+        title: "Enable Track email opens & clicks and Log to CRM",
+        hint: "Click Email on the Deal, then confirm Track email opens, Track clicks, and Log to CRM are enabled with Contact, Company, and Deal checked.",
+        path: () => "/deals/dl-redstone-grating",
+        done: (c) =>
+          (has(c, "email.track.opens") && has(c, "email.track.clicks")) || has(c, "email.track.enabled"),
+        script: () => [flag("email.track.opens"), flag("email.track.clicks"), flag("email.track.enabled")],
+      },
+      {
+        id: "send-logged-email",
+        title: "Send the 1:1 sales email with CRM associations",
+        hint: 'Click Send in the email composer after associating Contact, Company, and Deal.',
+        path: () => "/deals/dl-redstone-grating",
+        done: (c) => has(c, "email.sent.dl-redstone-grating") || has(c, "logged.email.dl-redstone-grating"),
+        script: (_c, now) => [
+          {
+            t: "email.send",
+            subject: "Q4 grating stock schedule & delivery confirmation",
+            body: "Dana — attached is the updated stock schedule. Tracking is enabled per AMICO Outlook policy.",
+            to: "dana.holloway@redstonesupply.example",
+            trackOpens: true,
+            trackClicks: true,
+            logToCrm: true,
+            contactIds: ["ct-dana"],
+            companyIds: ["co-redstone-supply"],
+            dealIds: ["dl-redstone-grating"],
+            at: now,
+          },
+        ],
+      },
+      {
+        id: "verify-emails-tab",
+        title: "Verify the sent email on the Deal Emails activity filter",
+        hint: "On the Deal Activity timeline, click the Emails filter and confirm your tracked send appears.",
+        path: () => "/deals/dl-redstone-grating",
+        done: (c) => has(c, "email.timeline.emailsTab"),
+        script: () => [flag("email.timeline.emailsTab")],
+      },
+    ],
+  },
+
+  "em-templates-snippets": {
+    moduleId: "em-templates-snippets",
+    steps: [
+      {
+        id: "open-deal-templates",
+        title: "Open a Deal and launch the Email composer",
+        hint: "Open Redstone Supply — Q4 Bar Grating & Expanded Metal Stock and click Email.",
+        path: () => "/deals/dl-redstone-grating",
+        done: (c) => has(c, "email.composer.opened") || has(c, "seen.deal.dl-redstone-grating"),
+        script: () => [flag("seen.deal.dl-redstone-grating"), flag("email.composer.opened")],
+      },
+      {
+        id: "insert-template",
+        title: "Insert an AMICO Quote Follow-Up template",
+        hint: 'Choose "Quote Follow-Up" from the Templates picker and confirm subject/body tokens personalize.',
+        path: () => "/deals/dl-redstone-grating",
+        done: (c) => has(c, "email.template.quote-follow-up"),
+        script: () => [
+          flag("email.template.quote-follow-up"),
+          { t: "ui", k: "email.lastTemplate", v: "quote-follow-up" },
+        ],
+      },
+      {
+        id: "insert-snippet",
+        title: "Add a standardized snippet to the email body",
+        hint: 'Select "Oracle pricing note" from Snippets or click Insert snippet.',
+        path: () => "/deals/dl-redstone-grating",
+        done: (c) => has(c, "email.snippet.used"),
+        script: () => [flag("email.snippet.used"), flag("email.snippet.oracle-pricing")],
+      },
+      {
+        id: "send-template-email",
+        title: "Send the personalized template email",
+        hint: "Click Send with Log to CRM enabled so Contact, Company, and Deal timelines update.",
+        path: () => "/deals/dl-redstone-grating",
+        done: (c) => has(c, "email.sent.dl-redstone-grating"),
+        script: (_c, now) => [
+          {
+            t: "email.send",
+            subject: "Following up — Redstone Supply Q4 grating quote HSQ-2026-401",
+            body: "Hi Dana,\n\nFollowing up on the quote we sent. Pricing reflects your Oracle customer contract and current mill surcharges.\n\nBest,\nTaylor Brooks",
+            to: "dana.holloway@redstonesupply.example",
+            templateId: "quote-follow-up",
+            snippetId: "oracle-pricing",
+            trackOpens: true,
+            trackClicks: true,
+            logToCrm: true,
+            contactIds: ["ct-dana"],
+            companyIds: ["co-redstone-supply"],
+            dealIds: ["dl-redstone-grating"],
+            at: now,
+          },
+        ],
+      },
+    ],
+  },
+
+  "em-quote-email-followup": {
+    moduleId: "em-quote-email-followup",
+    steps: [
+      {
+        id: "open-deal-quote",
+        title: "Open the Deal with an active HubSpot quote",
+        hint: "Open Redstone Supply — Q4 Bar Grating & Expanded Metal Stock and confirm HSQ-2026-401 on the quoting tab.",
+        path: () => "/deals/dl-redstone-grating",
+        done: (c) => has(c, "seen.deal.dl-redstone-grating"),
+        script: () => [flag("seen.deal.dl-redstone-grating")],
+      },
+      {
+        id: "compose-quote-delivery",
+        title: "Compose a quote delivery email with quote link attached",
+        hint: "Open Email, enable Attach quote link, and use the Quote Follow-Up template.",
+        path: () => "/deals/dl-redstone-grating",
+        done: (c) => has(c, "email.quote.attached") && has(c, "email.template.quote-follow-up"),
+        script: () => [flag("email.quote.attached"), flag("email.template.quote-follow-up")],
+      },
+      {
+        id: "send-quote-followup",
+        title: "Send quote delivery email with engagement tracking",
+        hint: "Send with Track email opens & clicks enabled to monitor buyer engagement on the quote.",
+        path: () => "/deals/dl-redstone-grating",
+        done: (c) => has(c, "email.sent.dl-redstone-grating"),
+        script: (_c, now) => [
+          {
+            t: "email.send",
+            subject: "Redstone Supply — HSQ-2026-401 quote package",
+            body: "Dana — your quote package is ready for review. We've enabled open and click tracking.",
+            to: "dana.holloway@redstonesupply.example",
+            templateId: "quote-follow-up",
+            trackOpens: true,
+            trackClicks: true,
+            logToCrm: true,
+            attachQuoteId: "q-redstone-1",
+            contactIds: ["ct-dana"],
+            companyIds: ["co-redstone-supply"],
+            dealIds: ["dl-redstone-grating"],
+            at: now,
+          },
+        ],
+      },
+      {
+        id: "verify-timeline",
+        title: "Confirm tracked quote email on the Emails tab",
+        hint: "Filter Activities to Emails and verify the tracked send with quote link metadata.",
+        path: () => "/deals/dl-redstone-grating",
+        done: (c) => has(c, "email.timeline.emailsTab"),
+        script: () => [flag("email.timeline.emailsTab")],
+      },
+    ],
+  },
+
+  "em-marketing-email-analytics": {
+    moduleId: "em-marketing-email-analytics",
+    steps: [
+      {
+        id: "open-marketing-email",
+        title: "Navigate to Marketing → Email",
+        hint: "In the left HubSpot nav, expand Marketing and open Marketing Email.",
+        path: () => "/marketing/email",
+        done: (c) => has(c, "seen.marketing.email"),
+        script: () => [flag("seen.marketing.email")],
+      },
+      {
+        id: "filter-sent",
+        title: "Filter to Sent AMICO division campaigns",
+        hint: "Click the Sent tab and inspect Industrials and Security Fence product campaigns.",
+        path: () => "/marketing/email",
+        done: (c) => has(c, "marketing.email.tab.sent"),
+        script: () => [flag("marketing.email.tab.sent"), flag("marketing.email.campaign.mkt-industrials-q4")],
+      },
+      {
+        id: "inspect-metrics",
+        title: "Review open rate & click rate performance",
+        hint: "Click Q4 Bar Grating & Expanded Metal Stock Program and read Open rate and Click rate metrics.",
+        path: () => "/marketing/email",
+        done: (c) => has(c, "marketing.email.campaignViewed"),
+        script: () => [
+          flag("marketing.email.campaignViewed"),
+          flag("marketing.email.campaign.mkt-industrials-q4"),
+        ],
+      },
+      {
+        id: "create-draft",
+        title: "Create and preview a draft marketing email",
+        hint: 'Click Create email, name the draft, and Save as draft.',
+        path: () => "/marketing/email",
+        done: (c) => has(c, "marketing.email.draftCreated"),
+        script: () => [
+          { t: "marketing.email.createDraft", name: "AMICO Industrials — Year-End Stock Promo" },
+        ],
+      },
+    ],
+  },
+};
