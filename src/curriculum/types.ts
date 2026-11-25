@@ -8,6 +8,10 @@ export type TrainingStep = {
   title: string;
   hint: string | ((c: StepCtx) => string);
   optional?: boolean;
+  /** `data-tour` anchor id for the guided spotlight (defaults to curriculum tour map). */
+  tourTarget?: string;
+  /** Fallback `data-tour` when the primary target is not mounted. */
+  tourFallback?: string;
   /** The shell path where this step happens. */
   path: (c: StepCtx) => string;
   /** Screen shown immediately after running Show me, when different from next step's start path. */

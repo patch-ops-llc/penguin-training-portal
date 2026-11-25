@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { QuotingGuideDrawer } from "./components/quoting/quoting-guide-drawer";
+import { ReferenceGuideDrawer } from "./components/reference-guide-drawer";
 import { PenguinMark } from "@/components/brand";
 import { stepText } from "@/curriculum";
 import { useShell } from "@/store/store";
 import { Icon } from "./icons";
+import { LocaleToggle, useLocaleOptional } from "./locale";
 import { cx, Menu, MenuItem } from "./ui";
 
 const hudButton =
@@ -19,11 +20,13 @@ function isTyping(target: EventTarget | null): boolean {
   return Boolean(el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable));
 }
 
-/**
- * Floating Penguin Training Coach HUD — deliberately styled in Penguin Strategies' deep royal-purple/indigo
- * palette with a "TRAINING GUIDE" badge and minimize toggle so learners never confuse training chrome with HubSpot.
- */
-export function TrainingBar() {
+export function TrainingBar({
+  spotlightMinimized,
+  onSpotlightMinimizedChange,
+}: {
+  spotlightMinimized: boolean;
+  onSpotlightMinimizedChange: (min: boolean) => void;
+}) {
   const {
     pack,
     world,
@@ -44,13 +47,17 @@ export function TrainingBar() {
     toggleBar,
     setCompletionOpen,
   } = useShell();
+  const { t } = useLocaleOptional();
 
-  const [quotingGuideOpen, setQuotingGuideOpen] = useState(false);
-  const showQuotingReference = pack.track.category === "division-quoting";
+  const [guideOpen, setGuideOpen] = useState(false);
 
   const total = script.steps.length;
   const step = stepIndex < total ? script.steps[stepIndex] : null;
   const text = step ? stepText(step, { w: world, pack }) : null;
+
+  useEffect(() => {
+    onSpotlightMinimizedChange(false);
+  }, [moduleId, onSpotlightMinimizedChange]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -66,6 +73,8 @@ export function TrainingBar() {
     return () => document.removeEventListener("keydown", onKey);
   }, [back, reset, toggleHighlight, toggleBar]);
 
+  const stepCountLabel = step ? t.taskOf(stepIndex + 1, total) : t.completed;
+
   if (barHidden) {
     return (
       <button
@@ -76,7 +85,7 @@ export function TrainingBar() {
         className="penguin-hud-shell fixed bottom-3 right-4 z-[65] inline-flex h-10 items-center gap-2 rounded-full px-3.5 text-[12px] font-semibold text-white hover:brightness-110"
       >
         <PenguinMark size={14} />
-        <span>TRAINING GUIDE</span>
+        <span>{t.trainingGuide}</span>
         <span className="rounded-full bg-[#6f55e8] px-2 py-0.5 text-[11px]">
           {step ? `${stepIndex + 1}/${total}` : "✓"}
         </span>
@@ -87,10 +96,10 @@ export function TrainingBar() {
   return (
     <div className="shrink-0 bg-[#333333] px-3 pb-2 pt-1.5">
       <div
-        className="penguin-hud-shell relative z-[60] flex min-h-[56px] items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-white"
+        className="penguin-hud-shell relative z-[60] flex min-h-[56px] flex-wrap items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-white"
         data-testid="training-bar"
+        data-tour="training-bar"
       >
-        {/* Penguin Training Guide Identity Pill + Exit */}
         <a
           href="/launchpad"
           title="Exit to Penguin Training Launchpad"
@@ -101,10 +110,11 @@ export function TrainingBar() {
           )}
         >
           <PenguinMark size={15} className="shrink-0 text-white" />
-          <span>TRAINING GUIDE</span>
+          <span>{t.trainingGuide}</span>
         </a>
 
-        {/* Module Switcher */}
+        <LocaleToggle className="flex overflow-hidden rounded-md border border-white/20" />
+
         <Menu
           up
           width={350}
@@ -151,8 +161,27 @@ export function TrainingBar() {
           )}
         </Menu>
 
-        {/* Step Progress & Coaching Prompt */}
-        <div className="mx-2 flex min-w-0 flex-[1_1_auto] items-center gap-2.5" data-testid="training-step">
+        <div className="flex items-center gap-1" data-testid="training-step-pills">
+          {script.steps.map((s, i) => (
+            <span
+              key={s.id}
+              className={cx(
+                "inline-flex h-6 w-6 items-center justify-center rounded-full text-[10.5px] font-bold",
+                i === stepIndex && !complete
+                  ? "bg-[#00a4bd] text-white ring-2 ring-white/40"
+                  : i < stepIndex || complete
+                    ? "bg-[#6f55e8]/80 text-white"
+                    : "bg-white/10 text-white/50",
+              )}
+              data-testid={`training-step-pill-${i + 1}`}
+              title={s.title}
+            >
+              {i + 1}
+            </span>
+          ))}
+        </div>
+
+        <div className="mx-1 flex min-w-0 flex-[1_1_auto] items-center gap-2.5" data-testid="training-step">
           <span
             className={cx(
               "shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-bold leading-none",
@@ -160,7 +189,7 @@ export function TrainingBar() {
             )}
             data-testid="training-step-count"
           >
-            {step ? `Task ${stepIndex + 1} of ${total}` : "Completed"}
+            {stepCountLabel}
           </span>
           <p className="min-w-0 flex-[1_1_auto] leading-tight" title={step && text ? `${text.title}. ${text.hint}` : undefined}>
             {step && text ? (
@@ -176,7 +205,7 @@ export function TrainingBar() {
             ) : (
               <>
                 <span className="line-clamp-1 text-[13.5px] font-semibold text-white" data-testid="training-step-title">
-                  Module complete — great work!
+                  {t.moduleComplete}
                 </span>
                 <span className="mt-0.5 block w-0 min-w-full truncate text-[12px] text-[#d5ccff]">
                   Review AMICO takeaways &amp; Do&rsquo;s and Don&rsquo;ts, or continue to the next module.
@@ -186,7 +215,6 @@ export function TrainingBar() {
           </p>
         </div>
 
-        {/* Navigation & Show-Me Controls */}
         <button
           type="button"
           className={hudButton}
@@ -195,7 +223,17 @@ export function TrainingBar() {
           title="Undo back one task (Left arrow)"
           data-testid="training-back"
         >
-          <Icon name="arrowLeft" size={14} /> Back
+          <Icon name="arrowLeft" size={14} /> {t.back}
+        </button>
+
+        <button
+          type="button"
+          className={cx(hudButton, "border border-white/25")}
+          onClick={() => setGuideOpen(true)}
+          data-testid="training-guide-open"
+          title="Open written step-by-step reference guide"
+        >
+          <Icon name="book" size={14} /> {t.guide}
         </button>
 
         {step ? (
@@ -208,8 +246,20 @@ export function TrainingBar() {
             onClick={showMe}
             title="Demonstrate this step in HubSpot"
             data-testid="training-show-me"
+            data-tour="training-show-me"
           >
-            Show me <Icon name="arrowRight" size={14} strokeWidth={2.1} />
+            {t.showMe} <Icon name="arrowRight" size={14} strokeWidth={2.1} />
+          </button>
+        ) : null}
+
+        {step && !spotlightMinimized ? (
+          <button
+            type="button"
+            className={cx(hudButton, "text-[11px]")}
+            onClick={() => onSpotlightMinimizedChange(true)}
+            data-testid="training-spotlight-minimize"
+          >
+            {t.minimizeSpotlight}
           </button>
         ) : null}
 
@@ -220,13 +270,12 @@ export function TrainingBar() {
             onClick={() => setCompletionOpen(true)}
             data-testid="training-finish-review"
           >
-            Finish &amp; Review
+            {t.finishReview}
           </button>
         ) : null}
 
         <span className="mx-0.5 h-6 w-px bg-white/20" aria-hidden="true" />
 
-        {/* Active HubSpot Role Switcher */}
         <Menu
           up
           align="right"
@@ -239,6 +288,7 @@ export function TrainingBar() {
               className={cx(hudButton, "min-w-0 !shrink")}
               title="Switch simulated HubSpot role / persona"
               data-testid="view-as"
+              data-tour="view-as"
             >
               <Icon name="eye" size={15} className="shrink-0 text-[#c4b5fd]" />
               <span className="max-w-[190px] min-w-0 truncate">
@@ -268,18 +318,6 @@ export function TrainingBar() {
           }
         </Menu>
 
-        {showQuotingReference ? (
-          <button
-            type="button"
-            className={cx(hudButton, quotingGuideOpen && "bg-[#6f55e8] !text-white")}
-            onClick={() => setQuotingGuideOpen(true)}
-            title="Open division Quoting Guide reference"
-            data-testid="quoting-guide-open"
-          >
-            <Icon name="book" size={14} /> <span className={wideOnly}>Guide</span>
-          </button>
-        ) : null}
-
         <button
           type="button"
           className={cx(hudButton, highlight && "bg-[#6f55e8] !text-white")}
@@ -288,7 +326,7 @@ export function TrainingBar() {
           title="Spotlight AMICO rules & Penguin CRM extensions on screen (H)"
           data-testid="training-highlight"
         >
-          <Icon name="highlight" size={14} /> <span className={wideOnly}>Coaching</span>
+          <Icon name="highlight" size={14} /> <span className={wideOnly}>{t.coaching}</span>
         </button>
 
         <button
@@ -298,7 +336,7 @@ export function TrainingBar() {
           title="Reset module sandbox (R)"
           data-testid="training-reset"
         >
-          <Icon name="reset" size={14} /> <span className={wideOnly}>Reset</span>
+          <Icon name="reset" size={14} /> <span className={wideOnly}>{t.reset}</span>
         </button>
 
         <button
@@ -312,7 +350,19 @@ export function TrainingBar() {
           <Icon name="minimize" size={14} />
         </button>
       </div>
-      <QuotingGuideDrawer open={quotingGuideOpen} onClose={() => setQuotingGuideOpen(false)} />
+      {step && !spotlightMinimized ? (
+        <div
+          className="mt-1.5 rounded-lg border border-[#a594ff]/45 bg-[#2a1d5c]/90 px-3 py-2 text-white"
+          data-testid="spotlight-coach-card"
+        >
+          <p className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-[#c4b5fd]">
+            {t.stepCoachOf(stepIndex + 1, total)}
+          </p>
+          <p className="mt-0.5 text-[13px] font-semibold">{text?.title}</p>
+          <p className="mt-0.5 text-[12px] text-[#d5ccff]">{text?.hint}</p>
+        </div>
+      ) : null}
+      <ReferenceGuideDrawer open={guideOpen} onClose={() => setGuideOpen(false)} />
     </div>
   );
 }

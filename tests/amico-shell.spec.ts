@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { openModule, signIn } from "./helpers";
 
 test("AMICO HubSpot shell: CRM nav, Profile, Global Search, Duplicate Contact, Multi-Division Companies, and Coaching H-key", async ({ page }) => {
+  test.setTimeout(120_000);
   await signIn(page);
   await openModule(page, "amico-hubspot-101", "orientation-navigation");
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useExtOrder } from "./ext-order";
 import { createPortal } from "react-dom";
 import { PenguinMark } from "@/components/brand";
 import { useShell } from "@/store/store";
@@ -32,6 +33,7 @@ export function Ext({ id, children, className, pinClass }: { id: string; childre
   const [hover, setHover] = useState(false);
   const [position, setPosition] = useState<Position | null>(null);
   const pinRef = useRef<HTMLButtonElement>(null);
+  const badge = useExtOrder(id, pinRef);
   const active = extension?.by === "penguin" || extension?.by === "amico-rule";
   const open = Boolean(active && (hover || highlight));
 
@@ -80,6 +82,11 @@ export function Ext({ id, children, className, pinClass }: { id: string; childre
         onBlur={() => setHover(false)}
       >
         <PenguinMark size={17} />
+        {badge > 0 ? (
+          <span className="px-pin-badge" data-testid={`ext-pin-badge-${id}`}>
+            {badge}
+          </span>
+        ) : null}
       </button>
       {open && position
         ? createPortal(

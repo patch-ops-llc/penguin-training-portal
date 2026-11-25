@@ -258,4 +258,49 @@ export const AMICO_101_SCRIPTS: Record<string, TrainingScript> = {
       },
     ],
   },
+
+  "preferences-breeze-help": {
+    moduleId: "preferences-breeze-help",
+    steps: [
+      {
+        id: "open-settings",
+        title: "Open General · Notifications & Email Preferences",
+        hint: "Click the Settings gear in the top HubSpot bar to configure Outlook, task reminders, and @mention alerts.",
+        path: () => "/deals",
+        done: (c) => has(c, "prefs.modalOpened"),
+        script: () => [flag("prefs.modalOpened")],
+      },
+      {
+        id: "configure-notifications",
+        title: "Save notification & Outlook preferences",
+        hint: "Enable task reminders, @mention alerts, and Connected Outlook — then save.",
+        path: () => "/profile",
+        done: (c) => has(c, "profile.saved") || has(c, "prefs.saved"),
+        script: () => [
+          {
+            t: "profile.update",
+            patch: { taskReminders: true, mentionAlerts: true, noisyPropertyAlerts: false, outlookConnected: true },
+          },
+          flag("prefs.saved"),
+          flag("profile.saved"),
+        ],
+      },
+      {
+        id: "open-help-support",
+        title: "Open HubSpot Support & AMICO Enablement Help",
+        hint: "Click the ? icon for Knowledge Base, NSM escalation rules, and Training Portal links.",
+        path: () => "/deals",
+        done: (c) => has(c, "help.opened"),
+        script: () => [flag("help.opened")],
+      },
+      {
+        id: "ask-breeze",
+        title: "Ask Breeze Assistant an AMICO question",
+        hint: "Open Breeze Assistant and send a suggested prompt about cross-division rules or quoting.",
+        path: () => "/deals",
+        done: (c) => has(c, "breeze.asked") || has(c, "breeze.panelOpened"),
+        script: () => [flag("breeze.panelOpened"), flag("breeze.asked")],
+      },
+    ],
+  },
 };

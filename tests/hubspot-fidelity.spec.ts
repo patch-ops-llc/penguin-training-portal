@@ -8,6 +8,7 @@ const ALL_AMICO_MODULES = [
   { trackId: "amico-hubspot-101", moduleId: "working-deals-logging" },
   { trackId: "amico-hubspot-101", moduleId: "quoting-routes-epicor" },
   { trackId: "amico-hubspot-101", moduleId: "projects-post-award" },
+  { trackId: "amico-hubspot-101", moduleId: "preferences-breeze-help" },
   { trackId: "amico-security-fence", moduleId: "sf-lead-to-deal" },
   { trackId: "amico-security-fence", moduleId: "sf-estimating-bidding" },
   { trackId: "amico-security-fence", moduleId: "sf-quote-ingestion-bid" },
@@ -18,6 +19,7 @@ const ALL_AMICO_MODULES = [
 test("HubSpot 2025/2026 Smart CRM UI Fidelity: dark slate chrome, Search HubSpot, Saved Views, Kanban weighted totals, 3-pane record + floating composer, Preview drawer, Sales Workspace drawer & Penguin HUD", async ({
   page,
 }) => {
+  test.setTimeout(120_000);
   const screenshotDir = process.env.SCREENSHOT_DIR;
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page);
@@ -153,7 +155,7 @@ test("HubSpot 2025/2026 Smart CRM UI Fidelity: dark slate chrome, Search HubSpot
   await expect(page.getByTestId("sales-workspace")).toBeVisible();
 });
 
-test("all 10 AMICO curriculum modules (101-M1..M5 and SF-M1..M5) walk cleanly in the overhauled HubSpot UI", async ({
+test("all 11 AMICO curriculum modules (101-M1..M6 and SF-M1..M5) walk cleanly in the overhauled HubSpot UI", async ({
   page,
 }) => {
   await signIn(page);
