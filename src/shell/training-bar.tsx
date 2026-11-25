@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { QuotingGuideDrawer } from "./components/quoting/quoting-guide-drawer";
 import { PenguinMark } from "@/components/brand";
 import { stepText } from "@/curriculum";
 import { useShell } from "@/store/store";
@@ -43,6 +44,9 @@ export function TrainingBar() {
     toggleBar,
     setCompletionOpen,
   } = useShell();
+
+  const [quotingGuideOpen, setQuotingGuideOpen] = useState(false);
+  const showQuotingReference = pack.track.category === "division-quoting";
 
   const total = script.steps.length;
   const step = stepIndex < total ? script.steps[stepIndex] : null;
@@ -264,6 +268,18 @@ export function TrainingBar() {
           }
         </Menu>
 
+        {showQuotingReference ? (
+          <button
+            type="button"
+            className={cx(hudButton, quotingGuideOpen && "bg-[#6f55e8] !text-white")}
+            onClick={() => setQuotingGuideOpen(true)}
+            title="Open division Quoting Guide reference"
+            data-testid="quoting-guide-open"
+          >
+            <Icon name="book" size={14} /> <span className={wideOnly}>Guide</span>
+          </button>
+        ) : null}
+
         <button
           type="button"
           className={cx(hudButton, highlight && "bg-[#6f55e8] !text-white")}
@@ -296,6 +312,7 @@ export function TrainingBar() {
           <Icon name="minimize" size={14} />
         </button>
       </div>
+      <QuotingGuideDrawer open={quotingGuideOpen} onClose={() => setQuotingGuideOpen(false)} />
     </div>
   );
 }

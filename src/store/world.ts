@@ -940,6 +940,14 @@ export function mutate(w: World, a: Action, pack: Pack): void {
       quote.status = "Sent";
       quote.sentAt = at;
       const deal = w.deals.find((d) => d.id === quote.dealId);
+      if (deal && deal.pipelineId === "building-products" && deal.stage === "bp-quote-pending") {
+        deal.stage = "bp-quoted";
+        deal.quoteDate = at;
+      }
+      if (deal && deal.pipelineId === "security-mesh" && deal.stage === "mesh-quote-pending") {
+        deal.stage = "mesh-quoted";
+        deal.quoteDate = at;
+      }
       if (deal && deal.pipelineId === "industrials" && deal.stage === "ind-in-progress") {
         deal.stage = "ind-quoted";
       }
